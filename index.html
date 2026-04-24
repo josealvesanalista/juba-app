@@ -1,76 +1,330 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Juba Bettas App</title>
+    <link rel="manifest" href="manifest.json">
+    <title>Juba Bettas - Controle de Manejo v5.3</title>
     <style>
-        /* (Aqui vai todo o CSS da v5.3) */
-        :root { --accent: #64ffda; --bg: #0a192f; --card: #112240; --text: #e6f1ff; --primary: #00a8ff; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
-        .container { width: 100%; max-width: 550px; background: var(--card); padding: 20px; border-radius: 15px; margin: auto; }
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #0a192f; border: 1px solid #233554; color: white; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; margin-top: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        :root {
+            --primary: #00a8ff;
+            --secondary: #0097e6;
+            --bg: #0a192f;
+            --card: #112240;
+            --text: #e6f1ff;
+            --accent: #64ffda;
+            --warning: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #233554;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: var(--accent);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #0a192f;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+            font-size: 16px; 
+        }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 13px;
+        }
+
         .btn-save { background: var(--accent); color: #0a192f; }
-        #res { margin-top: 20px; padding: 15px; border: 1px solid var(--accent); border-radius: 10px; background: rgba(100,255,218,0.05); display: none; }
+        .btn-clear { background: #334466; color: white; }
+
+        .search-section {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px dashed #233554;
+        }
+
+        #res {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 255, 218, 0.05);
+            border-radius: 10px;
+            border: 1px solid var(--accent);
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td { padding: 8px; text-align: center; border-bottom: 1px solid #233554; }
+        th { color: var(--accent); }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #8892b0;
+            width: 100%;
+        }
+
+        .version { position: fixed; bottom: 10px; left: 10px; font-size: 10px; opacity: 0.5; }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-update { background: var(--warning); color: white; }
+        .btn-download { background: var(--primary); color: white; }
+        .btn-backup-all { 
+            background: transparent; 
+            border: 1px solid var(--accent); 
+            color: var(--accent); 
+            margin-top: 20px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--accent); text-align:center; border-bottom: 2px solid var(--accent); padding-bottom:10px;">JUBA BETTAS - MANEJO</h2>
+    <h2>Juba Bettas - Controle de Manejo</h2>
     
-    <label>Nº Ninhada</label><input type="text" id="idN">
-    <label>Pai</label><input type="text" id="pai">
-    <label>Mãe</label><input type="text" id="mae">
-    <label>Eclosão</label><input type="date" id="dataE">
-    <label>Qtd Alevinos</label><input type="number" id="qtd">
+    <div class="form-group">
+        <label>Nº da Ninhada</label>
+        <input type="text" id="idN" placeholder="Ex: 001">
+    </div>
 
-    <button class="btn-save" onclick="salvarManejo()">SALVAR REGISTRO</button>
+    <div style="display:flex; gap:10px">
+        <div class="form-group" style="flex:1">
+            <label>Pai</label>
+            <input type="text" id="pai">
+        </div>
+        <div class="form-group" style="flex:1">
+            <label>Mãe</label>
+            <input type="text" id="mae">
+        </div>
+    </div>
 
-    <div style="margin-top:30px; border-top: 1px dashed #233554; padding-top:20px;">
-        <label>Consultar Nº</label>
-        <input type="text" id="idBusca">
-        <button style="background:var(--primary); color:white" onclick="buscarManejo()">CONSULTAR</button>
+    <div style="display:flex; gap:10px">
+        <div class="form-group" style="flex:1">
+            <label>Eclosão</label>
+            <input type="date" id="dataE">
+        </div>
+        <div class="form-group" style="flex:1">
+            <label>Qtd Alevinos</label>
+            <input type="number" id="qtd">
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn-clear" onclick="limparCampos()">Limpar</button>
+        <button class="btn-save" onclick="salvarManejo()">Salvar Registro</button>
+    </div>
+
+    <div class="search-section">
+        <label>Consultar Ninhada</label>
+        <input type="text" id="idBusca" placeholder="Nº da ninhada">
+        <button style="background: var(--primary); color: white; margin-top: 10px; width: 100%;" onclick="buscarManejo()">Consultar</button>
+        
         <div id="res"></div>
     </div>
+
+    <button class="btn-backup-all" onclick="gerarBackupGeral()">Exportar Backup Geral (Tudo)</button>
 </div>
 
+<div class="footer">Produzido por <strong>JB Tecnologia</strong></div>
+<div class="version">v5.3 - App Mode</div>
+
 <script>
-    // Lógica v5.3 (LocalStorage)
+    const CHAVE_PREFIXO = "Juba_MANEJO_";
+
+    // Registro do Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Service Worker Ativo"))
+        .catch(err => console.log("Erro SW:", err));
+    }
+
     function salvarManejo() {
-        const id = document.getElementById('idN').value;
-        const d = document.getElementById('dataE').value;
-        const q = document.getElementById('qtd').value;
-        if(!id || !d || !q) return alert("Preencha os campos!");
-        
-        const chave = "JB_APP_" + id;
-        let reg = JSON.parse(localStorage.getItem(chave)) || { historico: [] };
-        reg.id = id; reg.pai = document.getElementById('pai').value; reg.mae = document.getElementById('mae').value; reg.dataE = d;
-        reg.historico.push({ data: new Date().toLocaleString(), qtd: parseInt(q) });
-        
-        localStorage.setItem(chave, JSON.stringify(reg));
-        alert("✅ Salvo no App!");
-        ["idN","pai","mae","dataE","qtd"].forEach(i => document.getElementById(i).value = "");
+        const id = document.getElementById('idN').value.trim();
+        const pai = document.getElementById('pai').value.trim();
+        const mae = document.getElementById('mae').value.trim();
+        const dataE = document.getElementById('dataE').value;
+        const qtd = document.getElementById('qtd').value;
+
+        if(!id || !dataE || !qtd) {
+            alert("Preencha Nº, Data e Qtd!");
+            return;
+        }
+
+        const chave = CHAVE_PREFIXO + id;
+        const dataRegistro = new Date().toLocaleString('pt-BR');
+
+        let registro = localStorage.getItem(chave);
+        let historico = [];
+
+        if(registro) {
+            historico = JSON.parse(registro).historico || [];
+        }
+
+        historico.push({ data: dataRegistro, qtd: parseInt(qtd) });
+
+        const dadosFinal = { id, pai, mae, dataE, historico };
+        localStorage.setItem(chave, JSON.stringify(dadosFinal));
+
+        alert("✅ Registro salvo no sistema!");
+        limparCampos();
     }
 
     function buscarManejo() {
-        const id = document.getElementById('idBusca').value;
-        const dados = JSON.parse(localStorage.getItem("JB_APP_" + id));
-        if(!dados) return alert("Não encontrado!");
+        const id = document.getElementById('idBusca').value.trim();
+        const dados = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
         const res = document.getElementById('res');
+
+        if(!dados) {
+            alert("Ninhada não encontrada!");
+            res.style.display = "none";
+            return;
+        }
+
+        const inicial = dados.historico[0].qtd;
+        const atual = dados.historico[dados.historico.length - 1].qtd;
+        const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
+        const dias = Math.floor((new Date() - new Date(dados.dataE)) / (1000 * 60 * 60 * 24)) + 1;
+
+        let tabela = `<table><tr><th>Data</th><th>Qtd</th><th>%</th></tr>`;
+        dados.historico.forEach(h => {
+            let p = ((h.qtd / inicial) * 100).toFixed(1);
+            tabela += `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td><td>${p}%</td></tr>`;
+        });
+        tabela += `</table>`;
+
         res.style.display = "block";
-        res.innerHTML = `<strong>NINHADA ${dados.id}</strong><br>Pais: ${dados.pai} x ${dados.mae}<br>Histórico:<br>` + 
-                        dados.historico.map(h => `${h.data} - ${h.qtd} un`).join('<br>');
+        res.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <strong>NINHADA ${dados.id}</strong>
+                <span style="background:var(--accent); color:var(--bg); padding:2px 8px; border-radius:4px; font-weight:bold; font-size:10px">${dias} DIAS</span>
+            </div>
+            <div style="margin-top:10px; font-size:13px">
+                <b>Pais:</b> ${dados.pai} x ${dados.mae}<br>
+                <b>Sobrevivência:</b> <span style="color:var(--accent)">${sobrevivencia}%</span>
+            </div>
+            ${tabela}
+            <div class="action-buttons">
+                <button class="btn-update" onclick="prepararAtualizacao('${dados.id}')">Atualizar</button>
+                <button class="btn-download" onclick="baixarTxtNinhada('${dados.id}')">Baixar TXT</button>
+            </div>
+        `;
     }
 
-    // REGISTRO DO SERVICE WORKER (Para funcionar Offline e ser App)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
+    function baixarTxtNinhada(id) {
+        const d = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
+        let txt = `Juba BETTAS - NINHADA ${d.id}\nPAI: ${d.pai} | MÃE: ${d.mae}\nECLOSÃO: ${d.dataE}\n\nHISTÓRICO:\n` + 
+                  d.historico.map(h => `${h.data} -> ${h.qtd}`).join('\n');
+        
+        const blob = new Blob([txt], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `ninhada_${d.id}.txt`;
+        a.click();
+    }
+
+    function gerarBackupGeral() {
+        let txtGeral = "Juba BETTAS - BACKUP GERAL DE MANEJO\n\n";
+        let encontrou = false;
+
+        for (let i = 0; i < localStorage.length; i++) {
+            let chave = localStorage.key(i);
+            if (chave.startsWith(CHAVE_PREFIXO)) {
+                encontrou = true;
+                let d = JSON.parse(localStorage.getItem(chave));
+                txtGeral += `--- NINHADA ${d.id} ---\nPAIS: ${d.pai} x ${d.mae}\nECLOSÃO: ${d.dataE}\nSTATUS ATUAL: ${d.historico[d.historico.length-1].qtd} alevinos\n\n`;
+            }
+        }
+
+        if(!encontrou) return alert("Nenhum dado encontrado para exportar.");
+
+        const blob = new Blob([txtGeral], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `backup_geral_Juba_bettas.txt`;
+        a.click();
+    }
+
+    function prepararAtualizacao(id) {
+        const d = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
+        document.getElementById('idN').value = d.id;
+        document.getElementById('pai').value = d.pai;
+        document.getElementById('mae').value = d.mae;
+        document.getElementById('dataE').value = d.dataE;
+        document.getElementById('qtd').value = "";
+        document.getElementById('qtd').focus();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function limparCampos() {
+        ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
     }
 </script>
+
 </body>
 </html>

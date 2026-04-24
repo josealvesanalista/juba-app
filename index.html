@@ -5,194 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
     <link rel="manifest" href="manifest.json">
-    <title>Juba Bettas - PRO v6.0</title>
+    <title>Juba Bettas - Streamline v6.2</title>
     <style>
         :root { --primary: #00a8ff; --bg: #0a192f; --card: #112240; --text: #e6f1ff; --accent: #64ffda; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 550px; background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #233554; box-sizing: border-box; }
-        h2 { color: var(--accent); text-align: center; text-transform: uppercase; letter-spacing: 1px; font-size: 1.1rem; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        h2 { color: var(--accent); text-align: center; text-transform: uppercase; letter-spacing: 1px; font-size: 1.1rem; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--primary); font-weight: bold; }
-        input, select { width: 100%; padding: 10px; background: #0a192f; border: 1px solid #233554; border-radius: 8px; color: white; box-sizing: border-box; }
+        input { width: 100%; padding: 10px; background: #0a192f; border: 1px solid #233554; border-radius: 8px; color: white; box-sizing: border-box; font-size: 16px; }
+        
         .btn-row { display: flex; gap: 8px; margin-top: 15px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; text-transform: uppercase; }
+        
         .btn-auth { background: var(--accent); color: #0a192f; }
         .btn-save { background: var(--accent); color: #0a192f; }
+        .btn-update { background: var(--warning); color: white; margin-top: 15px; width: 100%; }
         .btn-logout { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 4px 8px; font-size: 10px; width: auto; flex: none; }
-        .alerta { background: rgba(243, 156, 18, 0.1); border-left: 4px solid var(--warning); padding: 10px; margin: 10px 0; font-size: 12px; border-radius: 4px; }
-        .stats-box { background: rgba(100, 255, 218, 0.1); padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px solid var(--accent); }
-        #res { margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; display: none; }
-        table { width: 100%; font-size: 11px; margin-top: 10px; text-align: center; }
-        th { color: var(--accent); }
+        
+        .stats-box { background: rgba(100, 255, 218, 0.08); padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); }
+        .alerta { background: rgba(243, 156, 18, 0.15); border-left: 4px solid var(--warning); padding: 10px; margin: 10px 0; font-size: 12px; border-radius: 4px; color: #fff; }
+        
+        #res { margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--accent); display: none; }
+        table { width: 100%; font-size: 12px; margin-top: 10px; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #233554; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="tela-login">
-        <h2>Acesso ao Sistema</h2>
+        <h2>Acesso Criador</h2>
         <div class="form-group"><label>E-mail</label><input type="email" id="email"></div>
         <div class="form-group"><label>Senha</label><input type="password" id="senha"></div>
-        
         <div id="campos-cadastro" style="display:none">
-            <div class="form-group"><label>Nome do Criador (Ex: Juba Bettas)</label><input type="text" id="nomeCriador"></div>
+            <div class="form-group"><label>Nome da Marca (Ex: Juba Bettas)</label><input type="text" id="nomeCriador"></div>
         </div>
-
         <button id="btn-login-main" class="btn-auth" onclick="handleLogin()">Entrar</button>
-        <button id="btn-cad-main" style="background:transparent; color:var(--accent); font-size:11px; margin-top:10px" onclick="mostrarCadastro()">Não tem conta? Criar nova conta</button>
-        
+        <button id="btn-cad-main" style="background:transparent; color:var(--accent); font-size:11px; margin-top:10px" onclick="mostrarCadastro()">Criar nova conta</button>
         <div id="acoes-cadastro" style="display:none">
-            <button class="btn-save" onclick="handleFinalizarCadastro()">Cadastrar e Entrar</button>
-            <button style="background:transparent; color:#ff4d4d; font-size:11px; margin-top:10px" onclick="location.reload()">Cancelar</button>
+            <button class="btn-save" onclick="handleFinalizarCadastro()">Finalizar Cadastro</button>
         </div>
     </div>
 
     <div id="tela-app" style="display:none">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-            <small id="user-display" style="color:var(--accent); font-weight:bold"></small>
+            <small id="user-display" style="color:var(--accent); font-size:10px"></small>
             <button class="btn-logout" onclick="signOut(auth)">Sair</button>
         </div>
         <h2 id="titulo-app">Manejo Online</h2>
 
         <div class="stats-box">
-            <small>Taxa Média de Sobrevivência</small>
-            <div id="media-geral" style="font-size: 24px; font-weight: bold; color: var(--accent)">0%</div>
+            <small>Taxa Média de Sobrevivência Geral</small>
+            <div id="media-geral" style="font-size: 20px; font-weight: bold; color: var(--accent)">0%</div>
         </div>
 
-        <div class="form-group"><label>Nº da Ninhada</label><input type="text" id="idN"></div>
-        <div style="display:flex; gap:10px">
-            <div class="form-group" style="flex:1"><label>Pai</label><input type="text" id="pai"></div>
-            <div class="form-group" style="flex:1"><label>Mãe</label><input type="text" id="mae"></div>
-        </div>
-        <div class="form-group"><label>Linhagem / Genética (Ex: Red Dragon, DT Carrier)</label><input type="text" id="genetica"></div>
-        <div style="display:flex; gap:10px">
-            <div class="form-group" style="flex:1"><label>Eclosão</label><input type="date" id="dataE"></div>
-            <div class="form-group" style="flex:1"><label>Qtd Alevinos</label><input type="number" id="qtd"></div>
-        </div>
-        <button class="btn-save" onclick="handleSalvar()">Salvar Ninhada</button>
-
-        <div class="search-section" style="margin-top:30px; border-top:1px dashed #233554; pt:20px">
-            <label>Buscar Ninhada</label>
-            <input type="text" id="idBusca">
-            <button style="background:var(--primary); color:white; width:100%; margin-top:8px" onclick="handleBuscar()">Consultar Online</button>
-            <div id="res"></div>
-        </div>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
-      authDomain: "jubabettas-5444b.firebaseapp.com",
-      projectId: "jubabettas-5444b",
-      storageBucket: "jubabettas-5444b.firebasestorage.app",
-      messagingSenderId: "411914499486",
-      appId: "1:411914499486:web:f7922f93bb67500b9dd28f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    window.signOut = signOut; window.auth = auth;
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('tela-login').style.display = 'none';
-            document.getElementById('tela-app').style.display = 'block';
-            const nome = user.displayName || "Criador";
-            document.getElementById('titulo-app').innerText = `${nome} - Manejo Online`;
-            document.getElementById('user-display').innerText = user.email;
-            atualizarDashboard();
-        } else {
-            document.getElementById('tela-login').style.display = 'block';
-            document.getElementById('tela-app').style.display = 'none';
-        }
-    });
-
-    window.mostrarCadastro = () => {
-        document.getElementById('campos-cadastro').style.display = 'block';
-        document.getElementById('acoes-cadastro').style.display = 'block';
-        document.getElementById('btn-login-main').style.display = 'none';
-        document.getElementById('btn-cad-main').style.display = 'none';
-    };
-
-    window.handleLogin = () => {
-        signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert("Erro: " + e.message));
-    };
-
-    window.handleFinalizarCadastro = async () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        const nome = document.getElementById('nomeCriador').value;
-        if(!nome) return alert("Informe o Nome do Criador");
-
-        try {
-            const res = await createUserWithEmailAndPassword(auth, email, senha);
-            await updateProfile(res.user, { displayName: nome });
-            location.reload();
-        } catch(e) { alert(e.message); }
-    };
-
-    window.handleSalvar = async () => {
-        const user = auth.currentUser;
-        const id = document.getElementById('idN').value;
-        const qtd = document.getElementById('qtd').value;
-        if(!user || !id || !qtd) return alert("Preencha os campos!");
-
-        const ref = doc(db, "usuarios", user.uid, "ninhadas", id);
-        const snap = await getDoc(ref);
-        let historico = snap.exists() ? snap.data().historico : [];
-        historico.push({ data: new Date().toLocaleString('pt-BR'), qtd: parseInt(qtd) });
-
-        await setDoc(ref, {
-            id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
-            genetica: document.getElementById('genetica').value, dataE: document.getElementById('dataE').value,
-            historico
-        });
-        alert("✅ Sincronizado!");
-        atualizarDashboard();
-    };
-
-    async function atualizarDashboard() {
-        const user = auth.currentUser;
-        const q = query(collection(db, "usuarios", user.uid, "ninhadas"));
-        const snap = await getDocs(q);
-        let soma = 0, total = 0;
-        snap.forEach(doc => {
-            const h = doc.data().historico;
-            soma += (h[h.length-1].qtd / h[0].qtd);
-            total++;
-        });
-        document.getElementById('media-geral').innerText = total > 0 ? ((soma/total)*100).toFixed(1) + "%" : "0%";
-    }
-
-    window.handleBuscar = async () => {
-        const user = auth.currentUser;
-        const id = document.getElementById('idBusca').value;
-        const snap = await getDoc(doc(db, "usuarios", user.uid, "ninhadas", id));
-        if (snap.exists()) {
-            const d = snap.data();
-            const dias = Math.floor((new Date() - new Date(d.dataE)) / 86400000) + 1;
-            let alertaTxt = "";
-            if(dias >= 15 && dias <= 20) alertaTxt = "⚠️ ALERTA: Iniciar Artêmia salina e TPA 10%.";
-            if(dias >= 30) alertaTxt = "⚠️ ALERTA: Seleção de crescimento e TPA 20%.";
-
-            document.getElementById('res').style.display = "block";
-            document.getElementById('res').innerHTML = `
-                ${alertaTxt ? `<div class="alerta">${alertaTxt}</div>` : ''}
-                <strong>NINHADA ${d.id} (${dias} dias)</strong><br>
-                <small>${d.genetica || 'Sem linhagem'}</small><br>
-                <b>Pais:</b> ${d.pai} x ${d.mae}<br>
-                <table><tr><th>Data</th><th>Qtd</th></tr>
-                ${d.historico.map(h => `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td></tr>`).join('')}
-                </table>
-            `;
-        } else alert("Não encontrada.");
-    };
-</script>
-</body>
-</html>
+        <div class="form-group"><label>Nº da Ninhada</label><input type

@@ -5,26 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
     <link rel="manifest" href="manifest.json">
-    <title>Juba Bettas - Multi-Criador</title>
+    <title>Juba Bettas - Premium v5.4</title>
     <style>
-        :root { --primary: #00a8ff; --bg: #0a192f; --card: #112240; --text: #e6f1ff; --accent: #64ffda; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #233554; }
-        
-        /* Telas */
+        :root {
+            --primary: #00a8ff;
+            --bg: #0a192f;
+            --card: #112240;
+            --text: #e6f1ff;
+            --accent: #64ffda;
+            --warning: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #233554;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: var(--accent);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        /* Controle de Telas */
         #tela-login { display: block; }
         #tela-app { display: none; }
 
-        h2 { color: var(--accent); text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #0a192f; border: 1px solid #233554; border-radius: 6px; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #0a192f;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+            font-size: 16px; 
+        }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
         .btn-auth { background: var(--accent); color: #0a192f; }
-        .btn-save { background: var(--primary); color: white; }
-        .btn-logout { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 20px; font-size: 11px; }
-        
-        #res { margin-top: 20px; padding: 15px; border: 1px solid var(--accent); border-radius: 8px; display: none; }
-        table { width: 100%; font-size: 12px; text-align: center; margin-top: 10px; }
+        .btn-save { background: var(--accent); color: #0a192f; }
+        .btn-clear { background: #334466; color: white; }
+        .btn-logout { 
+            background: transparent; 
+            color: #ff4d4d; 
+            border: 1px solid #ff4d4d; 
+            padding: 5px 10px;
+            width: auto;
+            flex: none;
+        }
+
+        .search-section {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px dashed #233554;
+        }
+
+        #res {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 255, 218, 0.05);
+            border-radius: 10px;
+            border: 1px solid var(--accent);
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td { padding: 8px; text-align: center; border-bottom: 1px solid #233554; }
+        th { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -32,36 +131,67 @@
 <div class="container">
     <div id="tela-login">
         <h2>Acesso Criador</h2>
-        <input type="email" id="email" placeholder="Seu e-mail">
-        <input type="password" id="senha" placeholder="Sua senha">
-        <button class="btn-auth" onclick="handleLogin()">Entrar</button>
-        <button style="background: transparent; color: var(--accent); font-size: 12px;" onclick="handleCadastro()">Não tem conta? Criar agora</button>
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="email" placeholder="seu@email.com">
+        </div>
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="senha" placeholder="******">
+        </div>
+        <button class="btn-auth" onclick="handleLogin()">Entrar no Sistema</button>
+        <p style="text-align:center; font-size: 12px; margin-top: 15px;">
+            <a href="#" onclick="handleCadastro()" style="color: var(--accent); text-decoration: none;">Não tem conta? Criar acesso agora</a>
+        </p>
     </div>
 
     <div id="tela-app">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <small id="user-info" style="color: var(--accent)"></small>
-            <button class="btn-logout" style="width: auto; padding: 5px 10px;" onclick="handleLogout()">Sair</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <small id="user-info" style="color: var(--accent); font-size: 10px;"></small>
+            <button class="btn-logout" onclick="handleLogout()">Sair</button>
         </div>
+        
         <h2>Manejo Online</h2>
         
-        <input type="text" id="idN" placeholder="Nº da Ninhada">
-        <div style="display:flex; gap:10px">
-            <input type="text" id="pai" placeholder="Pai">
-            <input type="text" id="mae" placeholder="Mãe">
+        <div class="form-group">
+            <label>Nº da Ninhada</label>
+            <input type="text" id="idN" placeholder="Ex: 001">
         </div>
-        <div style="display:flex; gap:10px">
-            <input type="date" id="dataE">
-            <input type="number" id="qtd" placeholder="Qtd">
-        </div>
-        <button class="btn-save" onclick="handleSalvar()">Salvar Ninhada</button>
 
-        <hr style="border: 0.5px dashed #233554; margin: 25px 0;">
-        
-        <input type="text" id="idBusca" placeholder="Consultar Nº">
-        <button class="btn-auth" onclick="handleBuscar()">Buscar Minha Ninhada</button>
-        
-        <div id="res"></div>
+        <div style="display:flex; gap:10px">
+            <div class="form-group" style="flex:1">
+                <label>Pai</label>
+                <input type="text" id="pai">
+            </div>
+            <div class="form-group" style="flex:1">
+                <label>Mãe</label>
+                <input type="text" id="mae">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px">
+            <div class="form-group" style="flex:1">
+                <label>Eclosão</label>
+                <input type="date" id="dataE">
+            </div>
+            <div class="form-group" style="flex:1">
+                <label>Qtd Alevinos</label>
+                <input type="number" id="qtd">
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-clear" onclick="limparCampos()">Limpar</button>
+            <button class="btn-save" onclick="handleSalvar()">Salvar na Nuvem</button>
+        </div>
+
+        <div class="search-section">
+            <label>Consultar Minhas Ninhadas</label>
+            <input type="text" id="idBusca" placeholder="Nº da ninhada">
+            <button style="background: var(--primary); color: white; margin-top: 10px; width: 100%;" onclick="handleBuscar()">Consultar Online</button>
+            
+            <div id="res"></div>
+        </div>
     </div>
 </div>
 
@@ -83,7 +213,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // MONITOR DE SESSÃO
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('tela-login').style.display = 'none';
@@ -95,7 +224,6 @@
         }
     });
 
-    // FUNÇÕES DE AUTENTICAÇÃO
     window.handleLogin = () => {
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
@@ -105,25 +233,23 @@
     window.handleCadastro = () => {
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
-        if(confirm("Deseja criar uma nova conta com este e-mail?")) {
-            createUserWithEmailAndPassword(auth, email, senha).catch(e => alert("Erro: " + e.message));
-        }
+        if(!email || !senha) return alert("Preencha e-mail e senha para criar conta.");
+        createUserWithEmailAndPassword(auth, email, senha).then(() => alert("Conta criada!")).catch(e => alert("Erro: " + e.message));
     };
 
     window.handleLogout = () => signOut(auth);
 
-    // FUNÇÕES DO BANCO DE DADOS (ISOLADOS POR USER ID)
     window.handleSalvar = async () => {
         const user = auth.currentUser;
         const id = document.getElementById('idN').value;
-        if(!user || !id) return alert("Erro ao identificar criador ou ID");
+        const qtd = document.getElementById('qtd').value;
+        if(!user || !id || !qtd) return alert("Preencha os campos obrigatórios!");
 
-        // CAMINHO: usuarios / {ID_CRIADOR} / ninhadas / {N_NINHADA}
         const ref = doc(db, "usuarios", user.uid, "ninhadas", id);
         const snap = await getDoc(ref);
         let historico = snap.exists() ? snap.data().historico : [];
 
-        historico.push({ data: new Date().toLocaleString('pt-BR'), qtd: parseInt(document.getElementById('qtd').value) });
+        historico.push({ data: new Date().toLocaleString('pt-BR'), qtd: parseInt(qtd) });
 
         await setDoc(ref, {
             id, pai: document.getElementById('pai').value,
@@ -131,26 +257,39 @@
             dataE: document.getElementById('dataE').value,
             historico
         });
-        alert("Salvo com sucesso na sua conta!");
+        alert("✅ Sincronizado com sua conta!");
+        limparCampos();
     };
 
     window.handleBuscar = async () => {
         const user = auth.currentUser;
         const id = document.getElementById('idBusca').value;
+        if(!user || !id) return;
+
         const docRef = doc(db, "usuarios", user.uid, "ninhadas", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            const d = docSnap.data();
-            document.getElementById('res').style.display = 'block';
-            document.getElementById('res').innerHTML = `
-                <strong>NINHADA ${d.id}</strong><br>
-                <small>${d.pai} x ${d.mae}</small>
-                <table><tr><th>Data</th><th>Qtd</th></tr>
-                ${d.historico.map(h => `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td></tr>`).join('')}
-                </table>
-            `;
-        } else { alert("Ninhada não encontrada na sua conta."); }
+            renderizarConsulta(docSnap.data());
+        } else {
+            alert("Ninhada não encontrada na sua conta.");
+        }
+    };
+
+    function renderizarConsulta(dados) {
+        const res = document.getElementById('res');
+        res.style.display = "block";
+        res.innerHTML = `
+            <strong>NINHADA ${dados.id}</strong><br>
+            <small>${dados.pai} x ${dados.mae}</small>
+            <table><tr><th>Data</th><th>Qtd</th></tr>
+            ${dados.historico.map(h => `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td></tr>`).join('')}
+            </table>
+        `;
+    }
+
+    window.limparCampos = () => {
+        ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
     };
 </script>
 </body>

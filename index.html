@@ -6,11 +6,10 @@
     <meta name="theme-color" content="#0a192f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <title>Juba Bettas - Controle de Manejo v5.3</title>
+    <title>Juba Bettas - Controle Online v5.3</title>
     <style>
         :root {
             --primary: #00a8ff;
-            --secondary: #0097e6;
             --bg: #0a192f;
             --card: #112240;
             --text: #e6f1ff;
@@ -83,7 +82,6 @@
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.2s;
             font-size: 13px;
         }
 
@@ -115,16 +113,6 @@
         th, td { padding: 8px; text-align: center; border-bottom: 1px solid #233554; }
         th { color: var(--accent); }
 
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 11px;
-            color: #8892b0;
-            width: 100%;
-        }
-
-        .version { position: fixed; bottom: 10px; left: 10px; font-size: 10px; opacity: 0.5; }
-
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -146,7 +134,7 @@
 <body>
 
 <div class="container">
-    <h2>Juba Bettas - Controle de Manejo</h2>
+    <h2>Juba Bettas - Controle Online</h2>
     
     <div class="form-group">
         <label>Nº da Ninhada</label>
@@ -177,75 +165,108 @@
 
     <div class="btn-row">
         <button class="btn-clear" onclick="limparCampos()">Limpar</button>
-        <button class="btn-save" onclick="salvarManejo()">Salvar Registro</button>
+        <button class="btn-save" onclick="handleSalvar()">Salvar na Nuvem</button>
     </div>
 
     <div class="search-section">
         <label>Consultar Ninhada</label>
         <input type="text" id="idBusca" placeholder="Nº da ninhada">
-        <button style="background: var(--primary); color: white; margin-top: 10px; width: 100%;" onclick="buscarManejo()">Consultar</button>
+        <button style="background: var(--primary); color: white; margin-top: 10px; width: 100%;" onclick="handleBuscar()">Consultar Online</button>
         
         <div id="res"></div>
     </div>
 
-    <button class="btn-backup-all" onclick="gerarBackupGeral()">Exportar Backup Geral (Tudo)</button>
+    <button class="btn-backup-all" onclick="handleBackupGeral()">Exportar Backup Geral (TXT)</button>
 </div>
 
-<div class="footer">Produzido por <strong>JB Tecnologia</strong></div>
-<div class="version">v5.3 - App Mode</div>
+<script type="module">
+    // IMPORTAÇÃO FIREBASE
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-<script>
-    const CHAVE_PREFIXO = "Juba_MANEJO_";
+    // CONFIGURAÇÃO QUE VOCÊ ME ENVIOU
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
+      authDomain: "jubabettas-5444b.firebaseapp.com",
+      projectId: "jubabettas-5444b",
+      storageBucket: "jubabettas-5444b.firebasestorage.app",
+      messagingSenderId: "411914499486",
+      appId: "1:411914499486:web:f7922f93bb67500b9dd28f",
+      measurementId: "G-1X0Y0V5B76"
+    };
 
-    // Registro do Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-        .then(() => console.log("Service Worker Ativo"))
-        .catch(err => console.log("Erro SW:", err));
-    }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function salvarManejo() {
+    // FUNÇÕES GLOBAIS PARA O HTML ACESSAR
+    window.handleSalvar = async () => {
         const id = document.getElementById('idN').value.trim();
-        const pai = document.getElementById('pai').value.trim();
-        const mae = document.getElementById('mae').value.trim();
-        const dataE = document.getElementById('dataE').value;
         const qtd = document.getElementById('qtd').value;
+        if(!id || !qtd) return alert("Preencha Nº e Quantidade!");
 
-        if(!id || !dataE || !qtd) {
-            alert("Preencha Nº, Data e Qtd!");
-            return;
-        }
-
-        const chave = CHAVE_PREFIXO + id;
-        const dataRegistro = new Date().toLocaleString('pt-BR');
-
-        let registro = localStorage.getItem(chave);
+        const ref = doc(db, "ninhadas", id);
+        const snap = await getDoc(ref);
+        
         let historico = [];
-
-        if(registro) {
-            historico = JSON.parse(registro).historico || [];
+        if (snap.exists()) {
+            historico = snap.data().historico || [];
         }
 
-        historico.push({ data: dataRegistro, qtd: parseInt(qtd) });
+        historico.push({
+            data: new Date().toLocaleString('pt-BR'),
+            qtd: parseInt(qtd)
+        });
 
-        const dadosFinal = { id, pai, mae, dataE, historico };
-        localStorage.setItem(chave, JSON.stringify(dadosFinal));
+        const dados = {
+            id,
+            pai: document.getElementById('pai').value,
+            mae: document.getElementById('mae').value,
+            dataE: document.getElementById('dataE').value,
+            historico
+        };
 
-        alert("✅ Registro salvo no sistema!");
-        limparCampos();
-    }
+        try {
+            await setDoc(ref, dados);
+            alert("✅ Sincronizado com Sucesso!");
+            limparCampos();
+        } catch (e) {
+            alert("Erro ao salvar: " + e.message);
+        }
+    };
 
-    function buscarManejo() {
+    window.handleBuscar = async () => {
         const id = document.getElementById('idBusca').value.trim();
-        const dados = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
-        const res = document.getElementById('res');
+        if(!id) return;
+        
+        const docRef = doc(db, "ninhadas", id);
+        const docSnap = await getDoc(docRef);
 
-        if(!dados) {
-            alert("Ninhada não encontrada!");
-            res.style.display = "none";
-            return;
+        if (docSnap.exists()) {
+            renderizarConsulta(docSnap.data());
+        } else {
+            alert("Ninhada não encontrada na nuvem!");
         }
+    };
 
+    window.handleBackupGeral = async () => {
+        const querySnapshot = await getDocs(collection(db, "ninhadas"));
+        let txtGeral = "JUBA BETTAS - BACKUP GERAL CLOUD\n\n";
+        
+        querySnapshot.forEach((doc) => {
+            const d = doc.data();
+            txtGeral += `--- NINHADA ${d.id} ---\nPAIS: ${d.pai} x ${d.mae}\nSTATUS: ${d.historico[d.historico.length-1].qtd} un\n\n`;
+        });
+
+        const blob = new Blob([txtGeral], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `backup_juba_cloud.txt`;
+        a.click();
+    };
+
+    // FUNÇÕES DE APOIO
+    function renderizarConsulta(dados) {
+        const res = document.getElementById('res');
         const inicial = dados.historico[0].qtd;
         const atual = dados.historico[dados.historico.length - 1].qtd;
         const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
@@ -270,59 +291,40 @@
             </div>
             ${tabela}
             <div class="action-buttons">
-                <button class="btn-update" onclick="prepararAtualizacao('${dados.id}')">Atualizar</button>
-                <button class="btn-download" onclick="baixarTxtNinhada('${dados.id}')">Baixar TXT</button>
+                <button class="btn-update" onclick="prepararAtualizacao('${dados.id}', '${dados.pai}', '${dados.mae}', '${dados.dataE}')">Atualizar</button>
+                <button class="btn-download" onclick="baixarIndividual('${dados.id}')">TXT</button>
             </div>
         `;
     }
 
-    function baixarTxtNinhada(id) {
-        const d = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
-        let txt = `Juba BETTAS - NINHADA ${d.id}\nPAI: ${d.pai} | MÃE: ${d.mae}\nECLOSÃO: ${d.dataE}\n\nHISTÓRICO:\n` + 
-                  d.historico.map(h => `${h.data} -> ${h.qtd}`).join('\n');
-        
+    window.baixarIndividual = async (id) => {
+        const docRef = doc(db, "ninhadas", id);
+        const docSnap = await getDoc(docRef);
+        const d = docSnap.data();
+        let txt = `NINHADA ${d.id}\nPAIS: ${d.pai} x ${d.mae}\n\n` + d.historico.map(h => `${h.data} -> ${h.qtd}`).join('\n');
         const blob = new Blob([txt], {type: 'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `ninhada_${d.id}.txt`;
+        a.download = `ninhada_${id}.txt`;
         a.click();
-    }
+    };
 
-    function gerarBackupGeral() {
-        let txtGeral = "Juba BETTAS - BACKUP GERAL DE MANEJO\n\n";
-        let encontrou = false;
-
-        for (let i = 0; i < localStorage.length; i++) {
-            let chave = localStorage.key(i);
-            if (chave.startsWith(CHAVE_PREFIXO)) {
-                encontrou = true;
-                let d = JSON.parse(localStorage.getItem(chave));
-                txtGeral += `--- NINHADA ${d.id} ---\nPAIS: ${d.pai} x ${d.mae}\nECLOSÃO: ${d.dataE}\nSTATUS ATUAL: ${d.historico[d.historico.length-1].qtd} alevinos\n\n`;
-            }
-        }
-
-        if(!encontrou) return alert("Nenhum dado encontrado para exportar.");
-
-        const blob = new Blob([txtGeral], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_geral_Juba_bettas.txt`;
-        a.click();
-    }
-
-    function prepararAtualizacao(id) {
-        const d = JSON.parse(localStorage.getItem(CHAVE_PREFIXO + id));
-        document.getElementById('idN').value = d.id;
-        document.getElementById('pai').value = d.pai;
-        document.getElementById('mae').value = d.mae;
-        document.getElementById('dataE').value = d.dataE;
+    window.prepararAtualizacao = (id, pai, mae, dataE) => {
+        document.getElementById('idN').value = id;
+        document.getElementById('pai').value = pai;
+        document.getElementById('mae').value = mae;
+        document.getElementById('dataE').value = dataE;
         document.getElementById('qtd').value = "";
         document.getElementById('qtd').focus();
         window.scrollTo({top: 0, behavior: 'smooth'});
-    }
+    };
 
-    function limparCampos() {
+    window.limparCampos = () => {
         ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
+    };
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
     }
 </script>
 

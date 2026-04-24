@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>Juba Bettas - v6.6</title>
+    <title>Manejo Bettas - Universal v6.7</title>
     <style>
         :root { --primary: #00a8ff; --bg: #0a192f; --card: #112240; --text: #e6f1ff; --accent: #64ffda; --warning: #f39c12; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
@@ -18,6 +18,7 @@
         .btn-save { background: var(--accent); color: #0a192f; }
         .btn-logout { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; width: auto; padding: 5px 10px; font-size: 10px; margin: 0; }
         .suporte { margin-top: 20px; text-align: center; font-size: 11px; color: #8892b0; border-top: 1px solid #233554; padding-top: 15px; }
+        .instrucao-cad { font-size: 11px; color: var(--warning); text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(243, 156, 18, 0.1); border-radius: 8px; }
         #res { margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--accent); display: none; }
         table { width: 100%; font-size: 12px; margin-top: 10px; border-collapse: collapse; }
         th, td { padding: 8px; border-bottom: 1px solid #233554; text-align: center; }
@@ -28,13 +29,18 @@
 <div class="container">
     <div id="auth-container">
         <h2>Acesso Criador</h2>
-        <div class="form-group"><label>E-mail</label><input type="email" id="email"></div>
-        <div class="form-group"><label>Senha</label><input type="password" id="senha"></div>
-        <button class="btn-auth" id="loginBtn">Entrar</button>
-        <button style="background:transparent; color:var(--accent); font-size:11px;" id="cadBtn">Criar nova conta</button>
+        
+        <div class="instrucao-cad">
+            ⚠️ <strong>Se não tem cadastro:</strong> preencha e-mail e senha e clique em "Criar nova conta".
+        </div>
+
+        <div class="form-group"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com"></div>
+        <div class="form-group"><label>Senha</label><input type="password" id="senha" placeholder="******"></div>
+        <button class="btn-auth" id="loginBtn">Entrar no Sistema</button>
+        <button style="background:transparent; color:var(--accent); font-size:11px;" id="cadBtn">Criar nova conta agora</button>
         
         <div class="suporte">
-            WHATSAPP DO SUPORTE:<br>
+            SUPORTE WHATSAPP:<br>
             <a href="https://wa.me/5583998027542" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a>
         </div>
     </div>
@@ -45,19 +51,20 @@
             <button class="btn-logout" id="logoutBtn">Sair</button>
         </div>
         <h2>Manejo Online</h2>
+        
         <div class="form-group"><label>Nº da Ninhada</label><input type="text" id="idN"></div>
         <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>Pai</label><input type="text" id="pai"></div>
-            <div style="flex:1"><label>Mãe</label><input type="text" id="mae"></div>
+            <div style="flex:1"><label>Macho (Pai)</label><input type="text" id="pai"></div>
+            <div style="flex:1"><label>Fêmea (Mãe)</label><input type="text" id="mae"></div>
         </div>
         <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>Eclosão</label><input type="date" id="dataE"></div>
-            <div style="flex:1"><label>Qtd</label><input type="number" id="qtd"></div>
+            <div style="flex:1"><label>Data de Eclosão</label><input type="date" id="dataE"></div>
+            <div style="flex:1"><label>Quantidade</label><input type="number" id="qtd"></div>
         </div>
-        <button class="btn-save" id="saveBtn">Salvar na Nuvem</button>
+        <button class="btn-save" id="saveBtn">Salvar Ninhada</button>
 
         <div style="margin-top:25px; border-top:1px dashed #233554; padding-top:15px">
-            <label>Buscar Nº</label>
+            <label>Buscar Ninhada por Nº</label>
             <input type="text" id="idBusca">
             <button style="background:var(--primary); color:white;" id="searchBtn">Consultar</button>
             <div id="res"></div>
@@ -96,12 +103,13 @@
 
     document.getElementById('loginBtn').onclick = () => {
         signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value)
-        .catch(e => alert("Erro: " + e.message));
+        .catch(e => alert("Erro ao entrar: Verifique e-mail/senha."));
     };
 
     document.getElementById('cadBtn').onclick = () => {
         createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value)
-        .catch(e => alert("Erro ao criar: " + e.message));
+        .then(() => alert("Conta criada com sucesso!"))
+        .catch(e => alert("Erro ao criar conta: Certifique-se de que é um e-mail válido e a senha tem 6 caracteres."));
     };
 
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
@@ -110,7 +118,7 @@
         const u = auth.currentUser;
         const id = document.getElementById('idN').value;
         const qtd = document.getElementById('qtd').value;
-        if(!id || !qtd) return alert("Preencha Nº e Qtd");
+        if(!id || !qtd) return alert("Preencha Nº da Ninhada e Quantidade!");
 
         const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
         const snap = await getDoc(ref);
@@ -121,24 +129,18 @@
             id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
             dataE: document.getElementById('dataE').value, historico: hist
         });
-        alert("Salvo!");
+        alert("✅ Dados salvos com sucesso!");
     };
 
     document.getElementById('searchBtn').onclick = async () => {
         const u = auth.currentUser;
         const id = document.getElementById('idBusca').value;
+        if(!id) return alert("Digite o número para buscar");
         const snap = await getDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
         if (snap.exists()) {
             const d = snap.data();
-            const res = document.getElementById('res');
-            res.style.display = "block";
-            res.innerHTML = `<strong>NINHADA ${d.id}</strong><br>
-                Macho: ${d.pai} | Fêmea: ${d.mae}<br>
-                <table><tr><th>Data</th><th>Qtd</th></tr>
-                ${d.historico.map(h => `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td></tr>`).join('')}
-                </table>`;
-        } else alert("Não encontrada");
-    };
-</script>
-</body>
-</html>
+            
+            // Cálculo da idade em dias
+            let eclosao = new Date(d.dataE);
+            let hoje = new Date();
+            let idadeDias = Math.floor((hoje - eclosao) / (1000 * 60 *

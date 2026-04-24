@@ -4,329 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <title>Juba Bettas - Controle Online v5.3</title>
+    <title>Juba Bettas - Multi-Criador</title>
     <style>
-        :root {
-            --primary: #00a8ff;
-            --bg: #0a192f;
-            --card: #112240;
-            --text: #e6f1ff;
-            --accent: #64ffda;
-            --warning: #f39c12;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 550px;
-            background: var(--card);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #233554;
-            box-sizing: border-box;
-        }
-
-        h2 {
-            color: var(--accent);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            background: #0a192f;
-            border: 1px solid #233554;
-            border-radius: 8px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 16px; 
-        }
-
-        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-
-        button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .btn-save { background: var(--accent); color: #0a192f; }
-        .btn-clear { background: #334466; color: white; }
-
-        .search-section {
-            margin-top: 35px;
-            padding-top: 20px;
-            border-top: 1px dashed #233554;
-        }
-
-        #res {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(100, 255, 218, 0.05);
-            border-radius: 10px;
-            border: 1px solid var(--accent);
-            display: none;
-        }
-
-        table {
-            width: 100%;
-            margin-top: 15px;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        th, td { padding: 8px; text-align: center; border-bottom: 1px solid #233554; }
-        th { color: var(--accent); }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
+        :root { --primary: #00a8ff; --bg: #0a192f; --card: #112240; --text: #e6f1ff; --accent: #64ffda; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #233554; }
         
-        .btn-update { background: var(--warning); color: white; }
-        .btn-download { background: var(--primary); color: white; }
-        .btn-backup-all { 
-            background: transparent; 
-            border: 1px solid var(--accent); 
-            color: var(--accent); 
-            margin-top: 20px;
-            width: 100%;
-        }
+        /* Telas */
+        #tela-login { display: block; }
+        #tela-app { display: none; }
+
+        h2 { color: var(--accent); text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #0a192f; border: 1px solid #233554; border-radius: 6px; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .btn-auth { background: var(--accent); color: #0a192f; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-logout { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 20px; font-size: 11px; }
+        
+        #res { margin-top: 20px; padding: 15px; border: 1px solid var(--accent); border-radius: 8px; display: none; }
+        table { width: 100%; font-size: 12px; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Juba Bettas - Controle Online</h2>
-    
-    <div class="form-group">
-        <label>Nº da Ninhada</label>
-        <input type="text" id="idN" placeholder="Ex: 001">
+    <div id="tela-login">
+        <h2>Acesso Criador</h2>
+        <input type="email" id="email" placeholder="Seu e-mail">
+        <input type="password" id="senha" placeholder="Sua senha">
+        <button class="btn-auth" onclick="handleLogin()">Entrar</button>
+        <button style="background: transparent; color: var(--accent); font-size: 12px;" onclick="handleCadastro()">Não tem conta? Criar agora</button>
     </div>
 
-    <div style="display:flex; gap:10px">
-        <div class="form-group" style="flex:1">
-            <label>Pai</label>
-            <input type="text" id="pai">
+    <div id="tela-app">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <small id="user-info" style="color: var(--accent)"></small>
+            <button class="btn-logout" style="width: auto; padding: 5px 10px;" onclick="handleLogout()">Sair</button>
         </div>
-        <div class="form-group" style="flex:1">
-            <label>Mãe</label>
-            <input type="text" id="mae">
+        <h2>Manejo Online</h2>
+        
+        <input type="text" id="idN" placeholder="Nº da Ninhada">
+        <div style="display:flex; gap:10px">
+            <input type="text" id="pai" placeholder="Pai">
+            <input type="text" id="mae" placeholder="Mãe">
         </div>
-    </div>
-
-    <div style="display:flex; gap:10px">
-        <div class="form-group" style="flex:1">
-            <label>Eclosão</label>
+        <div style="display:flex; gap:10px">
             <input type="date" id="dataE">
+            <input type="number" id="qtd" placeholder="Qtd">
         </div>
-        <div class="form-group" style="flex:1">
-            <label>Qtd Alevinos</label>
-            <input type="number" id="qtd">
-        </div>
-    </div>
+        <button class="btn-save" onclick="handleSalvar()">Salvar Ninhada</button>
 
-    <div class="btn-row">
-        <button class="btn-clear" onclick="limparCampos()">Limpar</button>
-        <button class="btn-save" onclick="handleSalvar()">Salvar na Nuvem</button>
-    </div>
-
-    <div class="search-section">
-        <label>Consultar Ninhada</label>
-        <input type="text" id="idBusca" placeholder="Nº da ninhada">
-        <button style="background: var(--primary); color: white; margin-top: 10px; width: 100%;" onclick="handleBuscar()">Consultar Online</button>
+        <hr style="border: 0.5px dashed #233554; margin: 25px 0;">
+        
+        <input type="text" id="idBusca" placeholder="Consultar Nº">
+        <button class="btn-auth" onclick="handleBuscar()">Buscar Minha Ninhada</button>
         
         <div id="res"></div>
     </div>
-
-    <button class="btn-backup-all" onclick="handleBackupGeral()">Exportar Backup Geral (TXT)</button>
 </div>
 
 <script type="module">
-    // IMPORTAÇÃO FIREBASE
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
-    // CONFIGURAÇÃO QUE VOCÊ ME ENVIOU
     const firebaseConfig = {
       apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
       authDomain: "jubabettas-5444b.firebaseapp.com",
       projectId: "jubabettas-5444b",
       storageBucket: "jubabettas-5444b.firebasestorage.app",
       messagingSenderId: "411914499486",
-      appId: "1:411914499486:web:f7922f93bb67500b9dd28f",
-      measurementId: "G-1X0Y0V5B76"
+      appId: "1:411914499486:web:f7922f93bb67500b9dd28f"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // FUNÇÕES GLOBAIS PARA O HTML ACESSAR
-    window.handleSalvar = async () => {
-        const id = document.getElementById('idN').value.trim();
-        const qtd = document.getElementById('qtd').value;
-        if(!id || !qtd) return alert("Preencha Nº e Quantidade!");
-
-        const ref = doc(db, "ninhadas", id);
-        const snap = await getDoc(ref);
-        
-        let historico = [];
-        if (snap.exists()) {
-            historico = snap.data().historico || [];
+    // MONITOR DE SESSÃO
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('tela-app').style.display = 'block';
+            document.getElementById('user-info').innerText = user.email;
+        } else {
+            document.getElementById('tela-login').style.display = 'block';
+            document.getElementById('tela-app').style.display = 'none';
         }
+    });
 
-        historico.push({
-            data: new Date().toLocaleString('pt-BR'),
-            qtd: parseInt(qtd)
-        });
+    // FUNÇÕES DE AUTENTICAÇÃO
+    window.handleLogin = () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        signInWithEmailAndPassword(auth, email, senha).catch(e => alert("Erro: " + e.message));
+    };
 
-        const dados = {
-            id,
-            pai: document.getElementById('pai').value,
+    window.handleCadastro = () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        if(confirm("Deseja criar uma nova conta com este e-mail?")) {
+            createUserWithEmailAndPassword(auth, email, senha).catch(e => alert("Erro: " + e.message));
+        }
+    };
+
+    window.handleLogout = () => signOut(auth);
+
+    // FUNÇÕES DO BANCO DE DADOS (ISOLADOS POR USER ID)
+    window.handleSalvar = async () => {
+        const user = auth.currentUser;
+        const id = document.getElementById('idN').value;
+        if(!user || !id) return alert("Erro ao identificar criador ou ID");
+
+        // CAMINHO: usuarios / {ID_CRIADOR} / ninhadas / {N_NINHADA}
+        const ref = doc(db, "usuarios", user.uid, "ninhadas", id);
+        const snap = await getDoc(ref);
+        let historico = snap.exists() ? snap.data().historico : [];
+
+        historico.push({ data: new Date().toLocaleString('pt-BR'), qtd: parseInt(document.getElementById('qtd').value) });
+
+        await setDoc(ref, {
+            id, pai: document.getElementById('pai').value,
             mae: document.getElementById('mae').value,
             dataE: document.getElementById('dataE').value,
             historico
-        };
-
-        try {
-            await setDoc(ref, dados);
-            alert("✅ Sincronizado com Sucesso!");
-            limparCampos();
-        } catch (e) {
-            alert("Erro ao salvar: " + e.message);
-        }
+        });
+        alert("Salvo com sucesso na sua conta!");
     };
 
     window.handleBuscar = async () => {
-        const id = document.getElementById('idBusca').value.trim();
-        if(!id) return;
-        
-        const docRef = doc(db, "ninhadas", id);
+        const user = auth.currentUser;
+        const id = document.getElementById('idBusca').value;
+        const docRef = doc(db, "usuarios", user.uid, "ninhadas", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            renderizarConsulta(docSnap.data());
-        } else {
-            alert("Ninhada não encontrada na nuvem!");
-        }
+            const d = docSnap.data();
+            document.getElementById('res').style.display = 'block';
+            document.getElementById('res').innerHTML = `
+                <strong>NINHADA ${d.id}</strong><br>
+                <small>${d.pai} x ${d.mae}</small>
+                <table><tr><th>Data</th><th>Qtd</th></tr>
+                ${d.historico.map(h => `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td></tr>`).join('')}
+                </table>
+            `;
+        } else { alert("Ninhada não encontrada na sua conta."); }
     };
-
-    window.handleBackupGeral = async () => {
-        const querySnapshot = await getDocs(collection(db, "ninhadas"));
-        let txtGeral = "JUBA BETTAS - BACKUP GERAL CLOUD\n\n";
-        
-        querySnapshot.forEach((doc) => {
-            const d = doc.data();
-            txtGeral += `--- NINHADA ${d.id} ---\nPAIS: ${d.pai} x ${d.mae}\nSTATUS: ${d.historico[d.historico.length-1].qtd} un\n\n`;
-        });
-
-        const blob = new Blob([txtGeral], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_juba_cloud.txt`;
-        a.click();
-    };
-
-    // FUNÇÕES DE APOIO
-    function renderizarConsulta(dados) {
-        const res = document.getElementById('res');
-        const inicial = dados.historico[0].qtd;
-        const atual = dados.historico[dados.historico.length - 1].qtd;
-        const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
-        const dias = Math.floor((new Date() - new Date(dados.dataE)) / (1000 * 60 * 60 * 24)) + 1;
-
-        let tabela = `<table><tr><th>Data</th><th>Qtd</th><th>%</th></tr>`;
-        dados.historico.forEach(h => {
-            let p = ((h.qtd / inicial) * 100).toFixed(1);
-            tabela += `<tr><td>${h.data.split(' ')[0]}</td><td>${h.qtd}</td><td>${p}%</td></tr>`;
-        });
-        tabela += `</table>`;
-
-        res.style.display = "block";
-        res.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <strong>NINHADA ${dados.id}</strong>
-                <span style="background:var(--accent); color:var(--bg); padding:2px 8px; border-radius:4px; font-weight:bold; font-size:10px">${dias} DIAS</span>
-            </div>
-            <div style="margin-top:10px; font-size:13px">
-                <b>Pais:</b> ${dados.pai} x ${dados.mae}<br>
-                <b>Sobrevivência:</b> <span style="color:var(--accent)">${sobrevivencia}%</span>
-            </div>
-            ${tabela}
-            <div class="action-buttons">
-                <button class="btn-update" onclick="prepararAtualizacao('${dados.id}', '${dados.pai}', '${dados.mae}', '${dados.dataE}')">Atualizar</button>
-                <button class="btn-download" onclick="baixarIndividual('${dados.id}')">TXT</button>
-            </div>
-        `;
-    }
-
-    window.baixarIndividual = async (id) => {
-        const docRef = doc(db, "ninhadas", id);
-        const docSnap = await getDoc(docRef);
-        const d = docSnap.data();
-        let txt = `NINHADA ${d.id}\nPAIS: ${d.pai} x ${d.mae}\n\n` + d.historico.map(h => `${h.data} -> ${h.qtd}`).join('\n');
-        const blob = new Blob([txt], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `ninhada_${id}.txt`;
-        a.click();
-    };
-
-    window.prepararAtualizacao = (id, pai, mae, dataE) => {
-        document.getElementById('idN').value = id;
-        document.getElementById('pai').value = pai;
-        document.getElementById('mae').value = mae;
-        document.getElementById('dataE').value = dataE;
-        document.getElementById('qtd').value = "";
-        document.getElementById('qtd').focus();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    };
-
-    window.limparCampos = () => {
-        ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
-    };
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
 </script>
-
 </body>
 </html>

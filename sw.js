@@ -1,6 +1,6 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('juba-v3').then((cache) => cache.addAll(['./', './index.html']))
+    caches.open('juba-v4').then((cache) => cache.addAll(['./', './index.html']))
   );
 });
 

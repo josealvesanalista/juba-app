@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v8.2</title>
+    <title>MANEJO BETTAS v8.3</title>
     
     <link rel="manifest" href="manifest.json">
     <script type="module">
@@ -25,18 +25,19 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // NAVEGAÇÃO COM LIMPEZA
+        // NAVEGAÇÃO COM RESET
         window.showScreen = (screenId) => {
-            // Limpar todos os campos antes de trocar
-            document.querySelectorAll('input').forEach(i => i.value = "");
-            document.getElementById('res').innerHTML = "";
-            document.getElementById('res').style.display = "none";
-            
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            window.toggleMenu(false);
+            
+            // Limpa campos exceto na Home e ao preparar atualização
+            if(screenId !== 'tela-home' && screenId !== 'tela-registrar'){
+                document.querySelectorAll('input').forEach(i => i.value = "");
+                document.getElementById('res').innerHTML = "";
+            }
 
             if(screenId === 'tela-home') verificarAlertasTPA();
+            window.toggleMenu(false);
         };
 
         window.toggleMenu = (open) => {
@@ -46,50 +47,54 @@
             else { menu.classList.remove('open'); overlay.classList.remove('active'); }
         };
 
-        // ALERTA DE TPA NA HOME
+        // ALERTA DE TPA CORRIGIDO
         async function verificarAlertasTPA() {
             const u = auth.currentUser;
             if(!u) return;
-            const container = document.getElementById('alerta-home-container');
-            container.innerHTML = "";
             
-            const querySnapshot = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
-            let ninhadasCriticas = [];
+            const container = document.getElementById('alerta-home-container');
+            container.innerHTML = "<p style='color:gray; font-size:10px'>Verificando manutenção...</p>";
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
+                let ninhadasCriticas = [];
+                const hoje = new Date();
 
-            querySnapshot.forEach((doc) => {
-                const d = doc.data();
-                const ultimaTroca = d.trocasAgua && d.trocasAgua.length > 0 
-                    ? new Date(d.trocasAgua[d.trocasAgua.length - 1].timestamp + "T12:00:00")
-                    : new Date(d.dataE + "T12:00:00");
-                
-                const diasSemTroca = Math.floor((new Date() - ultimaTroca) / 86400000);
-                if (diasSemTroca >= 3) ninhadasCriticas.push(d.id);
-            });
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    const ultimaTroca = d.trocasAgua && d.trocasAgua.length > 0 
+                        ? new Date(d.trocasAgua[d.trocasAgua.length - 1].timestamp + "T12:00:00")
+                        : new Date(d.dataE + "T12:00:00");
+                    
+                    const diffMilis = hoje.getTime() - ultimaTroca.getTime();
+                    const diasSemTroca = Math.floor(diffMilis / (1000 * 60 * 60 * 24));
+                    
+                    if (diasSemTroca >= 3) ninhadasCriticas.push(d.id);
+                });
 
-            if (ninhadasCriticas.length > 0) {
-                container.innerHTML = `
-                    <div class="card-alerta-home">
-                        <strong>⚠️ ATENÇÃO MANUTENÇÃO</strong>
-                        <p>As seguintes ninhadas precisam de TPA urgente: <br>
-                        <span style="color:var(--accent); font-size:1.2rem">${ninhadasCriticas.join(', ')}</span></p>
-                    </div>`;
+                if (ninhadasCriticas.length > 0) {
+                    container.innerHTML = `
+                        <div class="card-alerta-home">
+                            <strong style="color:#ff4d4d">⚠️ TPA NECESSÁRIA</strong>
+                            <p style="margin:5px 0">Ninhadas: <b style="color:var(--accent)">${ninhadasCriticas.join(', ')}</b></p>
+                        </div>`;
+                } else {
+                    container.innerHTML = "<p style='color:var(--accent); font-size:12px'>✅ Todas as TPAs em dia!</p>";
+                }
+            } catch (err) {
+                container.innerHTML = ""; 
+                console.error(err);
             }
         }
 
-        // LOGIN / CADASTRO / SAIR
+        // FUNÇÕES FIREBASE (MANTIDAS)
         window.handleLogin = () => {
             const e = document.getElementById('email').value;
             const s = document.getElementById('senha').value;
             signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
         };
-        window.handleCadastro = () => {
-            const e = document.getElementById('email').value;
-            const s = document.getElementById('senha').value;
-            createUserWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
-        };
         window.handleSair = () => signOut(auth);
 
-        // REGISTROS
         window.handleSalvar = async () => {
             const u = auth.currentUser;
             const id = document.getElementById('idN').value;
@@ -106,7 +111,7 @@
                 id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
                 dataE: document.getElementById('dataE').value, historico: hist, trocasAgua: trocas
             });
-            alert("REGISTRO SALVO!");
+            alert("SUCESSO!");
             showScreen('tela-home');
         };
 
@@ -114,156 +119,17 @@
             const u = auth.currentUser;
             const id = document.getElementById('idTroca').value;
             const dataT = document.getElementById('dataTroca').value;
-            if(!id || !dataT) return alert("Preencha os campos!");
+            if(!id || !dataT) return alert("Campos vazios!");
 
             const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
             const snap = await getDoc(ref);
-            if(!snap.exists()) return alert("Ninhada inexistente!");
+            if(!snap.exists()) return alert("Ninhada não existe!");
 
             const dataF = new Date(dataT + "T12:00:00").toLocaleDateString('pt-BR');
             await updateDoc(ref, { trocasAgua: arrayUnion({ data: dataF, timestamp: dataT }) });
-            alert("TROCA REGISTRADA!");
+            alert("TROCA SALVA!");
             showScreen('tela-home');
         };
 
-        // CONSULTA
         window.handleConsultar = async () => {
-            const u = auth.currentUser;
-            const id = document.getElementById('idBusca').value;
-            if(!id) return alert("Digite o número");
-            const snap = await getDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
-            if (snap.exists()) renderizarConsulta(snap.data());
-            else alert("Não encontrado");
-        };
-
-        function renderizarConsulta(d) {
-            const res = document.getElementById('res');
-            const inicial = d.historico[0].qtd;
-            const atual = d.historico[d.historico.length - 1].qtd;
-            const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
-            const diasVida = Math.floor((new Date() - new Date(d.dataE)) / 86400000) + 1;
-
-            res.style.display = "block";
-            res.innerHTML = `
-                <div class="card-resultado">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                        <strong style="font-size:1.2rem; color:var(--accent)">NINHADA ${d.id}</strong>
-                        <span class="badge-dias">${diasVida} DIAS</span>
-                    </div>
-                    
-                    <div class="genetica-box">
-                        <p>♂ <b>PAI:</b> ${d.pai}</p>
-                        <p>♀ <b>MÃE:</b> ${d.mae}</p>
-                    </div>
-
-                    <p style="margin:10px 0">📊 <b>Sobrevivência:</b> <span style="color:var(--accent)">${sobrevivencia}%</span></p>
-                    
-                    <table>
-                        <tr><th>Data</th><th>Qtd</th><th>%</th></tr>
-                        ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td><td>${((h.qtd/inicial)*100).toFixed(1)}%</td></tr>`).join('')}
-                    </table>
-
-                    <button class="btn-main" style="margin-top:20px; background:var(--orange); color:white" 
-                        onclick="prepararUpdate('${d.id}','${d.pai}','${d.mae}','${d.dataE}')">ATUALIZAR DADOS</button>
-                </div>`;
-        }
-
-        window.prepararUpdate = (id, p, m, de) => {
-            document.getElementById('idN').value = id;
-            document.getElementById('pai').value = p;
-            document.getElementById('mae').value = m;
-            document.getElementById('dataE').value = de;
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('tela-registrar').classList.add('active');
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            document.getElementById('tela-login').style.display = user ? 'none' : 'block';
-            document.getElementById('app-content').style.display = user ? 'block' : 'none';
-            if(user) showScreen('tela-home');
-        });
-    </script>
-
-    <style>
-        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; --red: #ff4d4d; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
-        header { background: var(--card); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #233554; position: sticky; top:0; z-index:100; }
-        .menu-btn { font-size: 24px; color: var(--accent); background: none; border: none; cursor: pointer; margin-right: 15px; }
-        #side-menu { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: var(--card); transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; }
-        #side-menu.open { left: 0; }
-        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:none; z-index: 999; }
-        #overlay.active { display: block; }
-        .menu-item { display: block; padding: 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid #233554; font-weight: bold; cursor: pointer; }
-        .screen { display: none; padding: 20px; max-width: 500px; margin: auto; }
-        .screen.active { display: block; }
-        .home-center { text-align: center; margin-top: 20px; }
-        .home-logo { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 15px; }
-        .card-alerta-home { background: #1d1d1d; border-left: 5px solid var(--red); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left; }
-        .genetica-box { background: #0c1d36; padding: 10px; border-radius: 6px; border: 1px solid #233554; }
-        .genetica-box p { margin: 5px 0; font-size: 14px; }
-        label { display: block; color: var(--blue); font-size: 12px; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 15px; width: 100%; text-transform: uppercase; }
-        .btn-main { background: var(--accent); color: #0a192f; }
-        .card-resultado { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; background: #112240; }
-        table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 12px; }
-        th { border-bottom: 1px solid #233554; color: var(--accent); padding: 5px; }
-        td { text-align: center; padding: 5px; border-bottom: 1px solid #1d2d44; }
-        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-        .footer-creditos { text-align: center; font-size: 10px; color: #8892b0; margin-top: 30px; padding: 20px; }
-    </style>
-</head>
-<body>
-
-    <div id="tela-login" style="padding: 50px 20px; text-align: center;">
-        <h2 style="color:var(--accent)">MANEJO BETTAS</h2>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="senha" placeholder="Senha">
-        <button class="btn-main" onclick="handleLogin()">ENTRAR</button>
-        <button style="background:none; color:var(--text); margin-top:15px; border:1px solid #233554" onclick="handleCadastro()">CRIAR CONTA</button>
-    </div>
-
-    <div id="app-content" style="display:none">
-        <div id="overlay" onclick="toggleMenu(false)"></div>
-        <header>
-            <button class="menu-btn" onclick="toggleMenu(true)">☰</button>
-            <strong style="color:var(--accent)">MANEJO BETTAS</strong>
-        </header>
-
-        <nav id="side-menu">
-            <h3 style="color:var(--accent)">MENU</h3>
-            <div class="menu-item" onclick="showScreen('tela-home')">🏠 HOME</div>
-            <div class="menu-item" onclick="showScreen('tela-registrar')">📝 REGISTRAR NINHADA</div>
-            <div class="menu-item" onclick="showScreen('tela-troca')">💧 REGISTRAR TROCA</div>
-            <div class="menu-item" onclick="showScreen('tela-consultar')">🔍 CONSULTAR</div>
-            <div class="menu-item" style="color:var(--red); margin-top: 50px" onclick="handleSair()">🚪 SAIR</div>
-        </nav>
-
-        <section id="tela-home" class="screen">
-            <div class="home-center">
-                <img src="icone.png" class="home-logo" alt="Logo">
-                <h1>BEM-VINDO!</h1>
-                <div id="alerta-home-container"></div>
-            </div>
-        </section>
-
-        <section id="tela-registrar" class="screen">
-            <h2>MANEJO</h2>
-            <label>Nº da Ninhada</label><input type="text" id="idN" placeholder="Ex: 001">
-            <label>Pai ♂</label><input type="text" id="pai">
-            <label>Mãe ♀</label><input type="text" id="mae">
-            <label>Data Eclosão</label><input type="date" id="dataE">
-            <label>Qtd Alevinos</label><input type="number" id="qtd">
-            <button class="btn-main" onclick="handleSalvar()">SALVAR</button>
-        </section>
-
-        <section id="tela-troca" class="screen">
-            <h2>TPA</h2>
-            <label>Nº da Ninhada</label><input type="text" id="idTroca">
-            <label>Data da Troca</label><input type="date" id="dataTroca">
-            <button class="btn-main" style="background:var(--orange); color:white" onclick="handleSalvarTroca()">REGISTRAR TROCA</button>
-        </section>
-
-        <section id="tela-consultar" class="screen">
-            <h2>CONSULTA</h2>
-            <label>Nº da Ninhada</label>
+            const u

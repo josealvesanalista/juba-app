@@ -4,94 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v8.5</title>
+    <title>MANEJO BETTAS v8.6</title>
     
     <style>
-        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; --red: #ff4d4d; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
-        header { background: var(--card); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #233554; }
-        .menu-btn { font-size: 24px; color: var(--accent); background: none; border: none; cursor: pointer; }
-        #side-menu { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: var(--card); transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; }
-        #side-menu.open { left: 0; }
-        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:none; z-index: 999; }
-        #overlay.active { display: block; }
-        .menu-item { display: block; padding: 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid #233554; font-weight: bold; cursor: pointer; }
-        .screen { display: none; padding: 20px; max-width: 450px; margin: auto; text-align: center; }
-        .screen.active { display: block; }
-        .home-logo { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--accent); margin: 20px auto; display: block; }
-        .card-alerta { background: #1d1d1d; border-left: 5px solid var(--red); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left; }
-        label { display: block; color: var(--blue); font-size: 12px; margin-top: 10px; text-align: left; font-weight: bold; }
-        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-top: 5px; box-sizing: border-box; font-size: 16px; }
-        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 15px; width: 100%; margin-top: 15px; text-transform: uppercase; }
+        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --text: #e6f1ff; --red: #ff4d4d; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; text-align: center; }
+        input { width: 80%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin: 10px 0; font-size: 16px; }
+        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 15px; width: 80%; margin-top: 15px; text-transform: uppercase; }
         .btn-main { background: var(--accent); color: #0a192f; }
-        .card-res { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; background: #112240; text-align: left; margin-top: 20px; }
-        .gen-box { background: #0c1d36; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px solid #233554; }
-        table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 12px; color: #8892b0; }
-        th { border-bottom: 1px solid #233554; color: var(--accent); padding: 8px; text-align: center; }
-        td { padding: 8px; text-align: center; border-bottom: 1px solid #1d2d44; }
-        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; float: right; }
+        .screen { display: none; padding: 20px; }
+        .screen.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="tela-login" style="padding: 100px 20px; text-align: center;">
+    <div id="tela-login" style="padding-top: 100px;">
         <h2 style="color:var(--accent)">MANEJO BETTAS</h2>
+        <p style="font-size: 12px; color: gray;">v8.6 - Estabilização de Login</p>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-main" onclick="window.handleLogin()">ENTRAR</button>
     </div>
 
     <div id="app-content" style="display:none">
-        <div id="overlay" onclick="window.toggleMenu(false)"></div>
-        <header>
-            <button class="menu-btn" onclick="window.toggleMenu(true)">☰</button>
-            <strong style="margin-left:15px; color:var(--accent)">MANEJO BETTAS</strong>
+        <header style="background: var(--card); padding: 15px; border-bottom: 1px solid #233554;">
+            <strong style="color:var(--accent)">SISTEMA ATIVO</strong>
         </header>
-
-        <nav id="side-menu">
-            <h3 style="color:var(--accent)">MENU</h3>
-            <div class="menu-item" onclick="window.showScreen('tela-home')">🏠 HOME</div>
-            <div class="menu-item" onclick="window.showScreen('tela-registrar')">📝 REGISTRAR</div>
-            <div class="menu-item" onclick="window.showScreen('tela-troca')">💧 TROCA DE ÁGUA</div>
-            <div class="menu-item" onclick="window.showScreen('tela-consultar')">🔍 CONSULTAR</div>
-            <div class="menu-item" style="color:var(--red); margin-top: 40px" onclick="window.handleSair()">🚪 SAIR</div>
-        </nav>
-
-        <section id="tela-home" class="screen">
-            <img src="icone.png" class="home-logo" onerror="this.style.display='none'">
+        <section id="tela-home" class="screen active">
             <h2>BEM-VINDO!</h2>
             <div id="alerta-home"></div>
-        </section>
-
-        <section id="tela-registrar" class="screen">
-            <h3>REGISTRO</h3>
-            <label>Nº NINHADA</label><input type="text" id="idN">
-            <label>PAI ♂</label><input type="text" id="pai">
-            <label>MÃE ♀</label><input type="text" id="mae">
-            <label>DATA ECLOSÃO</label><input type="date" id="dataE">
-            <label>QTD ALEVINOS</label><input type="number" id="qtd">
-            <button class="btn-main" onclick="window.handleSalvar()">SALVAR</button>
-        </section>
-
-        <section id="tela-troca" class="screen">
-            <h3>TPA</h3>
-            <label>Nº NINHADA</label><input type="text" id="idT">
-            <label>DATA DA TROCA</label><input type="date" id="dataT">
-            <button class="btn-main" style="background:var(--orange); color:white;" onclick="window.handleSalvarTroca()">SALVAR TROCA</button>
-        </section>
-
-        <section id="tela-consultar" class="screen">
-            <h3>CONSULTA</h3>
-            <input type="text" id="idB" placeholder="Nº da Ninhada">
-            <button class="btn-main" style="background:var(--blue); color:white" onclick="window.handleConsultar()">PESQUISAR</button>
-            <div id="res"></div>
+            <button onclick="window.handleSair()" style="background:var(--red); color:white">SAIR</button>
         </section>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
@@ -106,91 +55,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.toggleMenu = (open) => {
-            document.getElementById('side-menu').classList.toggle('open', open);
-            document.getElementById('overlay').classList.toggle('active', open);
-        };
-
-        window.showScreen = (id) => {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id !== 'tela-registrar') {
-                document.querySelectorAll('input').forEach(i => { if(i.id !== 'email' && i.id !== 'senha') i.value = ""; });
-                document.getElementById('res').innerHTML = "";
-            }
-            if(id === 'tela-home') window.verificarTPA();
-            window.toggleMenu(false);
-        };
-
+        // EXPOSTO PARA O WINDOW (Isso resolve o clique do botão)
         window.handleLogin = () => {
-            const e = document.getElementById('email').value;
-            const s = document.getElementById('senha').value;
-            signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
-        };
-
-        window.handleSair = () => signOut(auth);
-
-        window.handleSalvar = async () => {
-            const u = auth.currentUser;
-            const id = document.getElementById('idN').value;
-            const q = document.getElementById('qtd').value;
-            if(!u || !id || !q) return alert("Preencha Nº e Qtd");
-
-            const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
-            const snap = await getDoc(ref);
-            let hist = snap.exists() ? snap.data().historico : [];
-            hist.push({ data: new Date().toLocaleDateString('pt-BR'), qtd: parseInt(q) });
-
-            await setDoc(ref, {
-                id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
-                dataE: document.getElementById('dataE').value, historico: hist, trocasAgua: snap.exists() ? snap.data().trocasAgua : []
-            }, { merge: true });
-            alert("Salvo!");
-            window.showScreen('tela-home');
-        };
-
-        window.handleSalvarTroca = async () => {
-            const u = auth.currentUser;
-            const id = document.getElementById('idT').value;
-            const dt = document.getElementById('dataT').value;
-            if(!id || !dt) return alert("Preencha tudo");
-            const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
-            const snap = await getDoc(ref);
-            if(!snap.exists()) return alert("Ninhada não existe");
-
-            await updateDoc(ref, { trocasAgua: arrayUnion({ data: new Date(dt + "T12:00:00").toLocaleDateString('pt-BR'), timestamp: dt }) });
-            alert("Troca salva!");
-            window.showScreen('tela-home');
-        };
-
-        window.handleConsultar = async () => {
-            const u = auth.currentUser;
-            const id = document.getElementById('idB').value;
-            const snap = await getDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
+            const e = document.getElementById('email').value.trim();
+            const s = document.getElementById('senha').value.trim();
             
-            if(snap.exists()){
-                const d = snap.data();
-                const inicial = d.historico[0].qtd;
-                const atual = d.historico[d.historico.length - 1].qtd;
-                const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
-                const diasVida = Math.floor((new Date() - new Date(d.dataE)) / 86400000) + 1;
+            if(!e || !s) return alert("Preencha e-mail e senha");
 
-                document.getElementById('res').innerHTML = `
-                <div class="card-res">
-                    <span class="badge-dias">${diasVida} DIAS</span>
-                    <strong>NINHADA ${d.id}</strong>
-                    
-                    <div class="gen-box">
-                        <p style="margin:5px 0">♂ <b>PAI:</b> ${d.pai}</p>
-                        <p style="margin:5px 0">♀ <b>MÃE:</b> ${d.mae}</p>
-                    </div>
-
-                    <p style="font-size:14px; margin:10px 0">📊 Sobrevivência: <b style="color:var(--accent)">${sobrevivencia}%</b></p>
-                    
-                    <table>
-                        <tr><th>DATA</th><th>QTD</th><th>%</th></tr>
-                        ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td><td>${((h.qtd/inicial)*100).toFixed(0)}%</td></tr>`).join('')}
-                    </table>
-
-                    <button class="btn-main" style="background:var(--orange); color:white; margin-top:20px" 
-                        onclick="window.preencher('${d.id}','${d.pai}','${d.mae}','${d.dataE}')
+            signInWithEmailAndPassword(auth, e, s)

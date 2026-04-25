@@ -4,12 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v8.3</title>
+    <title>MANEJO BETTAS v8.4</title>
     
     <link rel="manifest" href="manifest.json">
+    <style>
+        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; --red: #ff4d4d; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        header { background: var(--card); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #233554; }
+        .menu-btn { font-size: 24px; color: var(--accent); background: none; border: none; cursor: pointer; }
+        #side-menu { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: var(--card); transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; }
+        #side-menu.open { left: 0; }
+        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:none; z-index: 999; }
+        #overlay.active { display: block; }
+        .menu-item { display: block; padding: 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid #233554; font-weight: bold; cursor: pointer; }
+        .screen { display: none; padding: 20px; max-width: 450px; margin: auto; text-align: center; }
+        .screen.active { display: block; }
+        .home-logo { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--accent); margin: 20px auto; display: block; }
+        .card-alerta { background: #1d1d1d; border-left: 5px solid var(--red); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left; }
+        label { display: block; color: var(--blue); font-size: 12px; margin-top: 10px; text-align: left; font-weight: bold; }
+        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-top: 5px; box-sizing: border-box; font-size: 16px; }
+        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 15px; width: 100%; margin-top: 15px; text-transform: uppercase; }
+        .btn-main { background: var(--accent); color: #0a192f; }
+        .card-res { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; background: #112240; text-align: left; margin-top: 20px; }
+        .gen-box { background: #0c1d36; padding: 10px; border-radius: 6px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <div id="tela-login" style="padding: 100px 20px; text-align: center;">
+        <h2 style="color:var(--accent)">MANEJO BETTAS</h2>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="senha" placeholder="Senha">
+        <button class="btn-main" onclick="window.handleLogin()">ENTRAR</button>
+    </div>
+
+    <div id="app-content" style="display:none">
+        <div id="overlay" onclick="window.toggleMenu(false)"></div>
+        <header>
+            <button class="menu-btn" onclick="window.toggleMenu(true)">☰</button>
+            <strong style="margin-left:15px; color:var(--accent)">MANEJO BETTAS</strong>
+        </header>
+
+        <nav id="side-menu">
+            <h3 style="color:var(--accent)">MENU</h3>
+            <div class="menu-item" onclick="window.showScreen('tela-home')">🏠 HOME</div>
+            <div class="menu-item" onclick="window.showScreen('tela-registrar')">📝 REGISTRAR</div>
+            <div class="menu-item" onclick="window.showScreen('tela-troca')">💧 TROCA DE ÁGUA</div>
+            <div class="menu-item" onclick="window.showScreen('tela-consultar')">🔍 CONSULTAR</div>
+            <div class="menu-item" style="color:var(--red); margin-top: 40px" onclick="window.handleSair()">🚪 SAIR</div>
+        </nav>
+
+        <section id="tela-home" class="screen">
+            <img src="icone.png" class="home-logo" onerror="this.style.display='none'">
+            <h2>BEM-VINDO!</h2>
+            <div id="alerta-home"></div>
+        </section>
+
+        <section id="tela-registrar" class="screen">
+            <h3>REGISTRO</h3>
+            <label>Nº NINHADA</label><input type="text" id="idN">
+            <label>PAI ♂</label><input type="text" id="pai">
+            <label>MÃE ♀</label><input type="text" id="mae">
+            <label>DATA ECLOSÃO</label><input type="date" id="dataE">
+            <label>QTD ALEVINOS</label><input type="number" id="qtd">
+            <button class="btn-main" onclick="window.handleSalvar()">SALVAR</button>
+        </section>
+
+        <section id="tela-troca" class="screen">
+            <h3>TPA</h3>
+            <label>Nº NINHADA</label><input type="text" id="idT">
+            <label>DATA DA TROCA</label><input type="date" id="dataT">
+            <button class="btn-main" style="background:var(--orange); color:white;" onclick="window.handleSalvarTroca()">SALVAR TROCA</button>
+        </section>
+
+        <section id="tela-consultar" class="screen">
+            <h3>CONSULTA</h3>
+            <input type="text" id="idB" placeholder="Nº da Ninhada">
+            <button class="btn-main" style="background:var(--blue); color:white" onclick="window.handleConsultar()">PESQUISAR</button>
+            <div id="res"></div>
+        </section>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -25,111 +103,105 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // NAVEGAÇÃO COM RESET
-        window.showScreen = (screenId) => {
+        window.toggleMenu = (open) => {
+            document.getElementById('side-menu').classList.toggle('open', open);
+            document.getElementById('overlay').classList.toggle('active', open);
+        };
+
+        window.showScreen = (id) => {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            
-            // Limpa campos exceto na Home e ao preparar atualização
-            if(screenId !== 'tela-home' && screenId !== 'tela-registrar'){
-                document.querySelectorAll('input').forEach(i => i.value = "");
+            document.getElementById(id).classList.add('active');
+            if(id !== 'tela-registrar') {
+                document.querySelectorAll('input').forEach(i => { if(i.id !== 'email' && i.id !== 'senha') i.value = ""; });
                 document.getElementById('res').innerHTML = "";
             }
-
-            if(screenId === 'tela-home') verificarAlertasTPA();
+            if(id === 'tela-home') window.verificarTPA();
             window.toggleMenu(false);
         };
 
-        window.toggleMenu = (open) => {
-            const menu = document.getElementById('side-menu');
-            const overlay = document.getElementById('overlay');
-            if (open) { menu.classList.add('open'); overlay.classList.add('active'); }
-            else { menu.classList.remove('open'); overlay.classList.remove('active'); }
-        };
-
-        // ALERTA DE TPA CORRIGIDO
-        async function verificarAlertasTPA() {
-            const u = auth.currentUser;
-            if(!u) return;
-            
-            const container = document.getElementById('alerta-home-container');
-            container.innerHTML = "<p style='color:gray; font-size:10px'>Verificando manutenção...</p>";
-            
-            try {
-                const querySnapshot = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
-                let ninhadasCriticas = [];
-                const hoje = new Date();
-
-                querySnapshot.forEach((doc) => {
-                    const d = doc.data();
-                    const ultimaTroca = d.trocasAgua && d.trocasAgua.length > 0 
-                        ? new Date(d.trocasAgua[d.trocasAgua.length - 1].timestamp + "T12:00:00")
-                        : new Date(d.dataE + "T12:00:00");
-                    
-                    const diffMilis = hoje.getTime() - ultimaTroca.getTime();
-                    const diasSemTroca = Math.floor(diffMilis / (1000 * 60 * 60 * 24));
-                    
-                    if (diasSemTroca >= 3) ninhadasCriticas.push(d.id);
-                });
-
-                if (ninhadasCriticas.length > 0) {
-                    container.innerHTML = `
-                        <div class="card-alerta-home">
-                            <strong style="color:#ff4d4d">⚠️ TPA NECESSÁRIA</strong>
-                            <p style="margin:5px 0">Ninhadas: <b style="color:var(--accent)">${ninhadasCriticas.join(', ')}</b></p>
-                        </div>`;
-                } else {
-                    container.innerHTML = "<p style='color:var(--accent); font-size:12px'>✅ Todas as TPAs em dia!</p>";
-                }
-            } catch (err) {
-                container.innerHTML = ""; 
-                console.error(err);
-            }
-        }
-
-        // FUNÇÕES FIREBASE (MANTIDAS)
         window.handleLogin = () => {
             const e = document.getElementById('email').value;
             const s = document.getElementById('senha').value;
             signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
         };
+
         window.handleSair = () => signOut(auth);
 
         window.handleSalvar = async () => {
             const u = auth.currentUser;
             const id = document.getElementById('idN').value;
             const q = document.getElementById('qtd').value;
-            if(!u || !id || !q) return alert("Preencha Nº e Qtd!");
+            if(!u || !id || !q) return alert("Preencha Nº e Qtd");
 
             const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
             const snap = await getDoc(ref);
             let hist = snap.exists() ? snap.data().historico : [];
-            let trocas = snap.exists() ? snap.data().trocasAgua || [] : [];
             hist.push({ data: new Date().toLocaleDateString('pt-BR'), qtd: parseInt(q) });
 
             await setDoc(ref, {
                 id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
-                dataE: document.getElementById('dataE').value, historico: hist, trocasAgua: trocas
-            });
-            alert("SUCESSO!");
-            showScreen('tela-home');
+                dataE: document.getElementById('dataE').value, historico: hist, trocasAgua: snap.exists() ? snap.data().trocasAgua : []
+            }, { merge: true });
+            alert("Salvo!");
+            window.showScreen('tela-home');
         };
 
         window.handleSalvarTroca = async () => {
             const u = auth.currentUser;
-            const id = document.getElementById('idTroca').value;
-            const dataT = document.getElementById('dataTroca').value;
-            if(!id || !dataT) return alert("Campos vazios!");
-
+            const id = document.getElementById('idT').value;
+            const dt = document.getElementById('dataT').value;
+            if(!id || !dt) return alert("Preencha tudo");
             const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
             const snap = await getDoc(ref);
-            if(!snap.exists()) return alert("Ninhada não existe!");
+            if(!snap.exists()) return alert("Ninhada não existe");
 
-            const dataF = new Date(dataT + "T12:00:00").toLocaleDateString('pt-BR');
-            await updateDoc(ref, { trocasAgua: arrayUnion({ data: dataF, timestamp: dataT }) });
-            alert("TROCA SALVA!");
-            showScreen('tela-home');
+            await updateDoc(ref, { trocasAgua: arrayUnion({ data: new Date(dt + "T12:00:00").toLocaleDateString('pt-BR'), timestamp: dt }) });
+            alert("Troca salva!");
+            window.showScreen('tela-home');
         };
 
         window.handleConsultar = async () => {
-            const u
+            const u = auth.currentUser;
+            const id = document.getElementById('idB').value;
+            const snap = await getDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
+            if(snap.exists()){
+                const d = snap.data();
+                document.getElementById('res').innerHTML = `
+                <div class="card-res">
+                    <strong>NINHADA ${d.id}</strong>
+                    <div class="gen-box"><p>♂ ${d.pai}</p><p>♀ ${d.mae}</p></div>
+                    <button class="btn-main" style="background:var(--orange)" onclick="window.preencher('${d.id}','${d.pai}','${d.mae}','${d.dataE}')">ATUALIZAR</button>
+                </div>`;
+            } else alert("Não encontrada");
+        };
+
+        window.preencher = (id, p, m, de) => {
+            document.getElementById('idN').value = id;
+            document.getElementById('pai').value = p;
+            document.getElementById('mae').value = m;
+            document.getElementById('dataE').value = de;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('tela-registrar').classList.add('active');
+        };
+
+        window.verificarTPA = async () => {
+            const u = auth.currentUser;
+            if(!u) return;
+            const snap = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
+            let criticas = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                const ult = d.trocasAgua?.length > 0 ? new Date(d.trocasAgua[d.trocasAgua.length-1].timestamp + "T12:00:00") : new Date(d.dataE + "T12:00:00");
+                if(Math.floor((new Date() - ult)/(1000*60*60*24)) >= 3) criticas.push(d.id);
+            });
+            document.getElementById('alerta-home').innerHTML = criticas.length > 0 ? `<div class="card-alerta">⚠️ TPA NECESSÁRIA:<br><b>${criticas.join(', ')}</b></div>` : "<p style='color:var(--accent)'>✅ TPAs em dia!</p>";
+        };
+
+        onAuthStateChanged(auth, user => {
+            document.getElementById('tela-login').style.display = user ? 'none' : 'block';
+            document.getElementById('app-content').style.display = user ? 'block' : 'none';
+            if(user) window.showScreen('tela-home');
+        });
+    </script>
+</body>
+</html>

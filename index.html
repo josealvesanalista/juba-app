@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v7.1</title>
+    <title>MANEJO BETTAS v8.0</title>
     
     <link rel="manifest" href="manifest.json">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('SW ativo!'))
-            .catch(err => console.log('Erro no SW', err));
+          navigator.serviceWorker.register('sw.js').then(reg => console.log('SW ativo!'));
         });
       }
     </script>
@@ -35,14 +33,26 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.limparSessao = () => {
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(i => i.value = "");
-            const res = document.getElementById('res');
-            res.innerHTML = "";
-            res.style.display = "none";
+        // NAVEGAÇÃO ENTRE TELAS
+        window.showScreen = (screenId) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            toggleMenu(false); // Fecha o menu ao clicar
         };
 
+        window.toggleMenu = (open) => {
+            const menu = document.getElementById('side-menu');
+            const overlay = document.getElementById('overlay');
+            if (open) {
+                menu.classList.add('open');
+                overlay.classList.add('active');
+            } else {
+                menu.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        };
+
+        // FIREBASE LOGIC (MANTIDA)
         window.handleLogin = () => {
             const e = document.getElementById('email').value;
             const s = document.getElementById('senha').value;
@@ -55,9 +65,7 @@
             createUserWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
         };
 
-        window.handleSair = () => {
-            signOut(auth).then(() => { window.limparSessao(); });
-        };
+        window.handleSair = () => { signOut(auth); };
 
         window.handleSalvar = async () => {
             const u = auth.currentUser;
@@ -76,6 +84,7 @@
             });
             alert("REGISTRO SALVO!");
             ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
+            showScreen('tela-home');
         };
 
         window.handleConsultar = async () => {
@@ -98,113 +107,123 @@
             res.innerHTML = `
                 <div class="card-resultado">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                        <strong style="font-size:1.1rem">NINHADA ${d.id}</strong>
+                        <strong>NINHADA ${d.id}</strong>
                         <span class="badge-dias">${dias} DIAS</span>
                     </div>
-                    <p style="margin:5px 0"><b>Pais:</b> ${d.pai} x ${d.mae}</p>
-                    <p style="margin:5px 0"><b>Sobrevivência:</b> <span style="color:#64ffda">${sobrevivencia}%</span></p>
+                    <p><b>Pais:</b> ${d.pai} x ${d.mae}</p>
+                    <p><b>Sobrevivência:</b> <span style="color:#64ffda">${sobrevivencia}%</span></p>
                     <table>
                         <tr><th>Data</th><th>Qtd</th><th>%</th></tr>
                         ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td><td>${((h.qtd/inicial)*100).toFixed(1)}%</td></tr>`).join('')}
                     </table>
-                    <div style="display:flex; gap:10px; margin-top:15px">
-                        <button class="btn-at" onclick="prepararUpdate('${d.id}','${d.pai}','${d.mae}','${d.dataE}')">ATUALIZAR</button>
-                        <button class="btn-txt">BAIXAR TXT</button>
-                    </div>
                 </div>`;
         }
 
-        window.prepararUpdate = (id, p, m, de) => {
-            document.getElementById('idN').value = id;
-            document.getElementById('pai').value = p;
-            document.getElementById('mae').value = m;
-            document.getElementById('dataE').value = de;
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        };
-
         onAuthStateChanged(auth, (user) => {
-            if (!user) window.limparSessao();
             document.getElementById('tela-login').style.display = user ? 'none' : 'block';
-            document.getElementById('tela-app').style.display = user ? 'block' : 'none';
+            document.getElementById('app-content').style.display = user ? 'block' : 'none';
+            if(user) showScreen('tela-home');
         });
     </script>
 
     <style>
-        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 450px; flex-grow: 1; display: flex; flex-direction: column; }
-        label { display: block; color: var(--blue); font-weight: bold; font-size: 13px; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        .row { display: flex; gap: 10px; }
-        .row > div { flex: 1; }
-        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-limpar { background: #233554; color: white; flex: 1; padding: 15px; }
-        .btn-salvar { background: var(--accent); color: #0a192f; flex: 1.2; padding: 15px; }
-        .btn-consultar { background: var(--blue); color: white; width: 100%; padding: 15px; margin-top: 10px; }
-        .divider { border-top: 1px dashed #233554; margin: 25px 0; }
+        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --text: #e6f1ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        
+        /* HEADER & MENU */
+        header { background: var(--card); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #233554; }
+        .menu-btn { font-size: 24px; color: var(--accent); background: none; border: none; cursor: pointer; margin-right: 15px; }
+        
+        #side-menu { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: var(--card); transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+        #side-menu.open { left: 0; }
+        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display:none; z-index: 999; }
+        #overlay.active { display: block; }
+
+        .menu-item { display: block; padding: 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid #233554; font-weight: bold; cursor: pointer; }
+        .menu-item:hover { color: var(--accent); }
+
+        /* SCREENS */
+        .screen { display: none; padding: 20px; max-width: 500px; margin: auto; }
+        .screen.active { display: block; }
+
+        /* HOME SCREEN */
+        .home-center { text-align: center; height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .home-logo { width: 180px; height: 180px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; }
+
+        /* FORMS */
+        label { display: block; color: var(--blue); font-size: 13px; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; }
+        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 15px; width: 100%; text-transform: uppercase; }
+        .btn-main { background: var(--accent); color: #0a192f; }
+        .btn-sec { background: #233554; color: white; margin-top: 10px; }
+        
         .card-resultado { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; margin-top: 15px; }
-        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
         th { border-bottom: 1px solid #233554; color: var(--accent); padding: 8px; }
-        td { text-align: center; padding: 8px; border-bottom: 1px solid #1d2d44; }
-        .btn-at { background: var(--orange); color: white; flex: 1; padding: 12px; }
-        .btn-txt { background: var(--blue); color: white; flex: 1; padding: 12px; }
-        .suporte { margin-top: 20px; text-align: center; font-size: 11px; color: #8892b0; border-top: 1px solid #233554; padding-top: 15px; }
-        
-        .footer-creditos {
-            margin-top: auto;
-            padding: 30px 0 10px;
-            text-align: center;
-            font-size: 10px;
-            color: #8892b0;
-            opacity: 0.7;
-        }
+        td { text-align: center; padding: 8px; }
+        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+        .footer-creditos { text-align: center; font-size: 10px; color: #8892b0; margin-top: 30px; padding: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="tela-login">
+    <div id="tela-login" style="padding: 50px 20px;">
         <h2 style="text-align:center; color:var(--accent)">MANEJO BETTAS</h2>
-        <p style="font-size: 11px; color: var(--orange); text-align: center;">Preencha e-mail e senha para entrar ou criar conta.</p>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="senha" placeholder="Senha">
-        <button class="btn-salvar" style="width:100%" onclick="handleLogin()">ENTRAR</button>
-        <button class="btn-limpar" style="width:100%; margin-top:10px" onclick="handleCadastro()">CRIAR CONTA</button>
-        <div class="suporte">SUPORTE WHATSAPP:<br><a href="https://wa.me/5583998027542" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a></div>
+        <button class="btn-main" onclick="handleLogin()">ENTRAR</button>
+        <button class="btn-sec" onclick="handleCadastro()">CRIAR CONTA</button>
     </div>
 
-    <div id="tela-app" style="display:none">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-            <small style="font-size:10px; color:var(--accent)">SISTEMA DE MANEJO</small>
-            <button onclick="handleSair()" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
-        </div>
-        <label>Nº da Ninhada</label>
-        <input type="text" id="idN" placeholder="Ex: 001">
-        <div class="row">
-            <div><label>Pai</label><input type="text" id="pai"></div>
-            <div><label>Mãe</label><input type="text" id="mae"></div>
-        </div>
-        <div class="row">
-            <div><label>Eclosão</label><input type="date" id="dataE"></div>
-            <div><label>Qtd Alevinos</label><input type="number" id="qtd"></div>
-        </div>
-        <div class="row" style="margin-top:10px">
-            <button class="btn-limpar" onclick="window.limparSessao()">LIMPAR</button>
-            <button class="btn-salvar" onclick="handleSalvar()">SALVAR REGISTRO</button>
-        </div>
-        <div class="divider"></div>
-        <label>Consultar Ninhada</label>
-        <input type="text" id="idBusca">
-        <button class="btn-consultar" onclick="handleConsultar()">CONSULTAR</button>
-        <div id="res"></div>
-    </div>
+    <div id="app-content" style="display:none">
+        <div id="overlay" onclick="toggleMenu(false)"></div>
+        
+        <header>
+            <button class="menu-btn" onclick="toggleMenu(true)">☰</button>
+            <strong style="color:var(--accent)">MANEJO BETTAS</strong>
+        </header>
 
-    <div class="footer-creditos">
-        Desenvolvido por Juba Bettas<br>
-        Todos os direitos reservados © 2026
+        <nav id="side-menu">
+            <h3 style="color:var(--accent)">MENU</h3>
+            <div class="menu-item" onclick="showScreen('tela-home')">HOME</div>
+            <div class="menu-item" onclick="showScreen('tela-registrar')">REGISTRAR NINHADA</div>
+            <div class="menu-item" onclick="showScreen('tela-consultar')">CONSULTAR NINHADA</div>
+            <div class="menu-item" style="color:red; margin-top: 50px" onclick="handleSair()">SAIR</div>
+        </nav>
+
+        <section id="tela-home" class="screen">
+            <div class="home-center">
+                <img src="icone.png" class="home-logo" alt="Logo">
+                <h1>BEM-VINDO!</h1>
+                <p style="color:var(--blue)">Sistema de Manejo Profissional</p>
+            </div>
+        </section>
+
+        <section id="tela-registrar" class="screen">
+            <h2>NOVO REGISTRO</h2>
+            <label>Nº da Ninhada</label>
+            <input type="text" id="idN" placeholder="Ex: 001">
+            <label>Pai</label><input type="text" id="pai">
+            <label>Mãe</label><input type="text" id="mae">
+            <label>Data Eclosão</label><input type="date" id="dataE">
+            <label>Qtd Alevinos</label><input type="number" id="qtd">
+            <button class="btn-main" onclick="handleSalvar()">SALVAR NINHADA</button>
+        </section>
+
+        <section id="tela-consultar" class="screen">
+            <h2>CONSULTA</h2>
+            <label>Digite o Nº da Ninhada</label>
+            <input type="text" id="idBusca">
+            <button class="btn-main" style="background:var(--blue); color:white" onclick="handleConsultar()">PESQUISAR</button>
+            <div id="res"></div>
+        </section>
+
+        <div class="footer-creditos">
+            Desenvolvido por Juba Bettas<br>
+            © 2026 Direitos Reservados
+        </div>
     </div>
-</div>
 
 </body>
 </html>

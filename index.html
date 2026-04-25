@@ -4,23 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v7.1</title>
+    <title>MANEJO BETTAS v7.2</title>
     
-    <link rel="manifest" href="manifest.json">
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('SW ativo!'))
-            .catch(err => console.log('Erro no SW', err));
-        });
-      }
-    </script>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
@@ -35,12 +24,17 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.limparSessao = () => {
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(i => i.value = "");
-            const res = document.getElementById('res');
-            res.innerHTML = "";
-            res.style.display = "none";
+        // --- TRAVAMENTO E AUTO-INCREMENTO ---
+        window.gerarProximoId = async () => {
+            const u = auth.currentUser;
+            if (!u) return;
+            const snap = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
+            let maxId = 0;
+            snap.forEach(doc => {
+                const num = parseInt(doc.data().id);
+                if (!isNaN(num) && num > maxId) maxId = num;
+            });
+            document.getElementById('idN').value = String(maxId + 1).padStart(3, '0');
         };
 
         window.handleLogin = () => {
@@ -49,33 +43,62 @@
             signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
         };
 
-        window.handleCadastro = () => {
-            const e = document.getElementById('email').value;
-            const s = document.getElementById('senha').value;
-            createUserWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
-        };
-
-        window.handleSair = () => {
-            signOut(auth).then(() => { window.limparSessao(); });
-        };
-
         window.handleSalvar = async () => {
             const u = auth.currentUser;
             const id = document.getElementById('idN').value;
             const q = document.getElementById('qtd').value;
-            if(!u || !id || !q) return alert("Preencha Nº e Qtd!");
+            if(!u || !id || !q) return alert("Preencha os campos obrigatórios!");
 
             const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
             const snap = await getDoc(ref);
+            
             let hist = snap.exists() ? snap.data().historico : [];
             hist.push({ data: new Date().toLocaleDateString('pt-BR'), qtd: parseInt(q) });
 
             await setDoc(ref, {
-                id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
-                dataE: document.getElementById('dataE').value, historico: hist
-            });
+                id, 
+                pai: document.getElementById('pai').value, 
+                mae: document.getElementById('mae').value,
+                dataE: document.getElementById('dataE').value, 
+                historico: hist,
+                ultimaTPA: snap.exists() ? (snap.data().ultimaTPA || document.getElementById('dataE').value) : document.getElementById('dataE').value
+            }, { merge: true });
+
             alert("REGISTRO SALVO!");
-            ["idN", "pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
+            ["pai", "mae", "dataE", "qtd"].forEach(id => document.getElementById(id).value = "");
+            window.gerarProximoId();
+            window.verificarTPAs();
+        };
+
+        window.registrarTPA = async (id) => {
+            const u = auth.currentUser;
+            const hoje = new Date().toISOString().split('T')[0];
+            const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
+            await updateDoc(ref, { ultimaTPA: hoje });
+            alert("TPA Confirmada!");
+            window.handleConsultar();
+            window.verificarTPAs();
+        };
+
+        window.verificarTPAs = async () => {
+            const u = auth.currentUser;
+            const alertaDiv = document.getElementById('alerta-tpa');
+            const snap = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
+            let atrasadas = [];
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                const ultima = new Date(d.ultimaTPA + "T12:00:00");
+                const diff = Math.floor((new Date() - ultima) / 86400000);
+                if (diff >= 3) atrasadas.push(d.id);
+            });
+
+            if (atrasadas.length > 0) {
+                alertaDiv.style.display = "block";
+                alertaDiv.innerHTML = `⚠️ <b>TPA NECESSÁRIA:</b> ${atrasadas.join(', ')}`;
+            } else {
+                alertaDiv.style.display = "none";
+            }
         };
 
         window.handleConsultar = async () => {
@@ -91,120 +114,38 @@
             const res = document.getElementById('res');
             const inicial = d.historico[0].qtd;
             const atual = d.historico[d.historico.length - 1].qtd;
-            const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
-            const dias = Math.floor((new Date() - new Date(d.dataE)) / 86400000) + 1;
-
             res.style.display = "block";
             res.innerHTML = `
                 <div class="card-resultado">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                        <strong style="font-size:1.1rem">NINHADA ${d.id}</strong>
-                        <span class="badge-dias">${dias} DIAS</span>
-                    </div>
-                    <p style="margin:5px 0"><b>Pais:</b> ${d.pai} x ${d.mae}</p>
-                    <p style="margin:5px 0"><b>Sobrevivência:</b> <span style="color:#64ffda">${sobrevivencia}%</span></p>
+                    <strong>NINHADA ${d.id}</strong>
+                    <p><b>Pais:</b> ${d.pai} x ${d.mae}</p>
+                    <p><b>Sobrevivência:</b> <span style="color:#64ffda">${((atual/inicial)*100).toFixed(1)}%</span></p>
+                    <button class="btn-tpa" onclick="registrarTPA('${d.id}')">CONFIRMAR TPA HOJE</button>
                     <table>
-                        <tr><th>Data</th><th>Qtd</th><th>%</th></tr>
-                        ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td><td>${((h.qtd/inicial)*100).toFixed(1)}%</td></tr>`).join('')}
+                        <tr><th>Data</th><th>Qtd</th></tr>
+                        ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td></tr>`).join('')}
                     </table>
-                    <div style="display:flex; gap:10px; margin-top:15px">
-                        <button class="btn-at" onclick="prepararUpdate('${d.id}','${d.pai}','${d.mae}','${d.dataE}')">ATUALIZAR</button>
-                        <button class="btn-txt">BAIXAR TXT</button>
-                    </div>
                 </div>`;
         }
 
-        window.prepararUpdate = (id, p, m, de) => {
-            document.getElementById('idN').value = id;
-            document.getElementById('pai').value = p;
-            document.getElementById('mae').value = m;
-            document.getElementById('dataE').value = de;
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        };
-
         onAuthStateChanged(auth, (user) => {
-            if (!user) window.limparSessao();
             document.getElementById('tela-login').style.display = user ? 'none' : 'block';
             document.getElementById('tela-app').style.display = user ? 'block' : 'none';
+            if(user) { window.gerarProximoId(); window.verificarTPAs(); }
         });
     </script>
 
     <style>
-        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 450px; flex-grow: 1; display: flex; flex-direction: column; }
+        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; --red: #ff4d4d; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 450px; }
         label { display: block; color: var(--blue); font-weight: bold; font-size: 13px; margin-bottom: 5px; }
         input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background: #071224; color: #8892b0; }
         .row { display: flex; gap: 10px; }
         .row > div { flex: 1; }
-        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-limpar { background: #233554; color: white; flex: 1; padding: 15px; }
-        .btn-salvar { background: var(--accent); color: #0a192f; flex: 1.2; padding: 15px; }
-        .btn-consultar { background: var(--blue); color: white; width: 100%; padding: 15px; margin-top: 10px; }
-        .divider { border-top: 1px dashed #233554; margin: 25px 0; }
-        .card-resultado { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; margin-top: 15px; }
-        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
-        th { border-bottom: 1px solid #233554; color: var(--accent); padding: 8px; }
-        td { text-align: center; padding: 8px; border-bottom: 1px solid #1d2d44; }
-        .btn-at { background: var(--orange); color: white; flex: 1; padding: 12px; }
-        .btn-txt { background: var(--blue); color: white; flex: 1; padding: 12px; }
-        .suporte { margin-top: 20px; text-align: center; font-size: 11px; color: #8892b0; border-top: 1px solid #233554; padding-top: 15px; }
-        
-        .footer-creditos {
-            margin-top: auto;
-            padding: 30px 0 10px;
-            text-align: center;
-            font-size: 10px;
-            color: #8892b0;
-            opacity: 0.7;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div id="tela-login">
-        <h2 style="text-align:center; color:var(--accent)">MANEJO BETTAS</h2>
-        <p style="font-size: 11px; color: var(--orange); text-align: center;">Preencha e-mail e senha para entrar ou criar conta.</p>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="senha" placeholder="Senha">
-        <button class="btn-salvar" style="width:100%" onclick="handleLogin()">ENTRAR</button>
-        <button class="btn-limpar" style="width:100%; margin-top:10px" onclick="handleCadastro()">CRIAR CONTA</button>
-        <div class="suporte">SUPORTE WHATSAPP:<br><a href="https://wa.me/5583998027542" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a></div>
-    </div>
-
-    <div id="tela-app" style="display:none">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-            <small style="font-size:10px; color:var(--accent)">SISTEMA DE MANEJO</small>
-            <button onclick="handleSair()" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
-        </div>
-        <label>Nº da Ninhada</label>
-        <input type="text" id="idN" placeholder="Ex: 001">
-        <div class="row">
-            <div><label>Pai</label><input type="text" id="pai"></div>
-            <div><label>Mãe</label><input type="text" id="mae"></div>
-        </div>
-        <div class="row">
-            <div><label>Eclosão</label><input type="date" id="dataE"></div>
-            <div><label>Qtd Alevinos</label><input type="number" id="qtd"></div>
-        </div>
-        <div class="row" style="margin-top:10px">
-            <button class="btn-limpar" onclick="window.limparSessao()">LIMPAR</button>
-            <button class="btn-salvar" onclick="handleSalvar()">SALVAR REGISTRO</button>
-        </div>
-        <div class="divider"></div>
-        <label>Consultar Ninhada</label>
-        <input type="text" id="idBusca">
-        <button class="btn-consultar" onclick="handleConsultar()">CONSULTAR</button>
-        <div id="res"></div>
-    </div>
-
-    <div class="footer-creditos">
-        Desenvolvido por Juba Bettas<br>
-        Todos os direitos reservados © 2026
-    </div>
-</div>
-
-</body>
-</html>
+        button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; padding: 15px; }
+        .btn-salvar { background: var(--accent); color: #0a192f; width: 100%; }
+        .btn-consultar { background: var(--blue); color: white; width: 100%; margin-top: 10px; }
+        .btn-tpa { background: var(--orange); color: white; width: 100%; margin-top: 10px; padding: 10px; font-size: 12px; }
+        .card-alerta { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--red); color: var(--red); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size

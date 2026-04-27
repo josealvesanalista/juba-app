@@ -78,6 +78,7 @@
         window.limparSessao = () => {
             const inputs = document.querySelectorAll('input');
             inputs.forEach(i => { if(i.id !== 'idN') i.value = ""; });
+            document.getElementById('res').innerHTML = "";
             document.getElementById('res').style.display = "none";
             window.atualizarListaNinhadas();
         };
@@ -86,6 +87,16 @@
             const e = document.getElementById('email').value;
             const s = document.getElementById('senha').value;
             signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
+        };
+
+        window.handleCadastro = () => {
+            const e = document.getElementById('email').value;
+            const s = document.getElementById('senha').value;
+            createUserWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
+        };
+
+        window.handleSair = () => {
+            signOut(auth).then(() => { window.limparSessao(); });
         };
 
         window.handleSalvar = async () => {
@@ -186,13 +197,14 @@
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-salvar" style="width:100%" onclick="handleLogin()">ENTRAR</button>
+        <button class="btn-limpar" style="width:100%; margin-top:10px" onclick="handleCadastro()">CRIAR CONTA</button>
         <div class="suporte">SUPORTE WHATSAPP:<br><a href="https://wa.me/5583998027542" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a></div>
     </div>
 
     <div id="tela-app" style="display:none">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
             <small style="color:var(--accent)">SISTEMA DE MANEJO</small>
-            <button onclick="signOut(auth)" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
+            <button onclick="window.handleSair()" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
         </div>
         
         <label>Nº da Ninhada (Automático)</label>

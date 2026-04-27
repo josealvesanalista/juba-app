@@ -26,7 +26,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- NOVO: GERAR PRÓXIMO NÚMERO ---
         window.proximoID = async () => {
             const u = auth.currentUser;
             if(!u) return;
@@ -39,7 +38,6 @@
             document.getElementById('idN').value = String(maior + 1).padStart(3, '0');
         };
 
-        // --- NOVO: VERIFICAR TPAs PENDENTES ---
         window.checarAlertas = async () => {
             const u = auth.currentUser;
             const alertaBox = document.getElementById('alerta-tpa');
@@ -178,6 +176,8 @@
         th { border-bottom: 1px solid #233554; color: var(--accent); padding: 8px; }
         td { text-align: center; padding: 8px; border-bottom: 1px solid #1d2d44; }
         .btn-at { background: var(--orange); color: white; flex: 1; padding: 12px; }
+        .suporte { margin-top: 20px; text-align: center; font-size: 11px; color: #8892b0; border-top: 1px solid #233554; padding-top: 15px; }
+        .footer-creditos { margin-top: auto; padding: 30px 0 10px; text-align: center; font-size: 10px; color: #8892b0; opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -189,6 +189,7 @@
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-salvar" style="width:100%" onclick="handleLogin()">ENTRAR</button>
         <button class="btn-limpar" style="width:100%; margin-top:10px" onclick="handleCadastro()">CRIAR CONTA</button>
+        <div class="suporte">SUPORTE WHATSAPP:<br><a href="https://wa.me/5583998027542" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a></div>
     </div>
 
     <div id="tela-app" style="display:none">
@@ -221,6 +222,11 @@
         <input type="text" id="idBusca" placeholder="Digite o número">
         <button class="btn-consultar" onclick="handleConsultar()">CONSULTAR</button>
         <div id="res"></div>
+        
+        <div class="footer-creditos">
+            Desenvolvido por Juba Bettas<br>
+            Todos os direitos reservados © 2026
+        </div>
     </div>
 </div>
 </body>

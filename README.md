@@ -1,40 +1,44 @@
-🐟 Manejo Bettas v7.1
-O Manejo Bettas é um Web App progressivo (PWA) desenvolvido para criadores de Bettas de linhagem que precisam de um controle rigoroso sobre suas ninhadas, desde a eclosão até a fase adulta.
+🐟 Manejo Bettas v7.3
+O Manejo Bettas é um Web App progressivo (PWA) de alto desempenho, focado no controle genético e produtivo de criatórios de Bettas de linhagem. Desenvolvido para oferecer mobilidade e precisão, o sistema permite que o criador gerencie múltiplas ninhadas diretamente da estufa.
 
-Este projeto nasceu da necessidade de monitorar a taxa de sobrevivência e o histórico genético de linhagens complexas como Red Dragon e Doubletail.
+🚀 O que há de novo na v7.3
+Navegação Dinâmica: Lista de ninhadas cadastradas com acesso rápido. Basta um clique no número da ninhada para visualizar o histórico completo.
 
-🚀 Funcionalidades
-Registro de Ninhadas: Cadastro rápido com ID, identificação de matrizes (Pai e Mãe), data de eclosão e contagem inicial.
+Função "Reiniciar Balde": Permite zerar os dados de um registro específico para reutilização do espaço/número, ideal para novos ciclos de reprodução.
 
-Histórico de Evolução: Permite atualizar a quantidade de alevinos ao longo do tempo para gerar dados precisos.
+ID Inteligente e Travado: O sistema identifica automaticamente o próximo número de ninhada disponível, evitando sobreposição de dados e garantindo a integridade dos registros.
 
-Cálculo de Sobrevivência: O sistema calcula automaticamente a porcentagem de sobrevivência com base na contagem inicial e na última atualização.
+Alertas de TPA e Manejo: Notificações visuais inteligentes que indicam quais ninhadas estão há mais de 3 dias sem atualização ou troca parcial de água.
 
-Controle de Idade: Exibição automática de quantos dias a ninhada possui.
+🛠️ Funcionalidades Principais
+Controle de Sobrevivência: Cálculo automático da taxa de sobrevivência baseado no histórico de contagens.
 
-Cloud Storage: Integração total com Firebase Firestore para garantir que os dados nunca sejam perdidos.
+Histórico Linear: Registro detalhado de cada manejo realizado, com data e quantidade de alevinos.
 
-Sistema Multi-Usuário: Autenticação segura via Firebase Auth, onde cada criador tem seu próprio banco de dados privado.
+Cálculo de Idade (Dias): Exibição em tempo real de quantos dias se passaram desde a eclosão.
 
-🛠️ Tecnologias Utilizadas
-Frontend: HTML5, CSS3 (Mobile First) e JavaScript (ES6+).
+Segurança Cloud: Autenticação individual via Firebase. Seus dados estão vinculados à sua conta e acessíveis de qualquer dispositivo.
 
-Backend as a Service (BaaS): Firebase (Auth & Firestore).
+Interface Dark Mode: Design otimizado para ambientes de criação, reduzindo o cansaço visual.
 
-PWA: Service Workers para suporte a instalação e cache.
+⚙️ Tecnologias
+Frontend: JavaScript Moderno (ES6+), HTML5, CSS3.
 
-📦 Como Instalar
-Como o sistema é um PWA, você não precisa baixar na Play Store:
+Backend: Firebase Firestore (Banco de dados NoSQL).
 
-Acesse o link do projeto pelo navegador do celular.
+Auth: Firebase Authentication.
 
-Clique nas opções do navegador (três pontinhos).
+PWA: Service Worker para instalação como aplicativo nativo no smartphone.
 
-Selecione "Instalar Aplicativo" ou "Adicionar à tela de início".
+📦 Instalação
+O sistema é um PWA (Progressive Web App):
 
-O ícone do Juba Bettas aparecerá na sua grade de aplicativos.
+Abra o link do projeto no navegador do seu smartphone.
 
-📝 Licença
-Desenvolvido por Juba Bettas.
+No menu do navegador, selecione "Instalar Aplicativo" ou "Adicionar à Tela Inicial".
 
+Acesse o ícone do Juba Bettas na sua lista de apps.
+
+📝 Licença e Créditos
+Desenvolvido por Jose Alves Junior (Sistemas Analyst) para a marca Juba Bettas.
 Todos os direitos reservados © 2026.

@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a192f">
-    <title>MANEJO BETTAS v7.2</title>
+    <title>MANEJO BETTAS v7.3</title>
     
     <link rel="manifest" href="manifest.json">
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDGkFLjHPD2w9vvG8JS9KlKE6v5gSJ7emE",
@@ -26,16 +26,34 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.proximoID = async () => {
+        window.atualizarListaNinhadas = async () => {
             const u = auth.currentUser;
             if(!u) return;
             const snap = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
+            const listaDiv = document.getElementById('lista-ninhadas');
+            let botoes = "";
             let maior = 0;
-            snap.forEach(d => {
-                const n = parseInt(d.data().id);
+            
+            const docs = [];
+            snap.forEach(d => docs.push(d.data()));
+            docs.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            docs.forEach(d => {
+                botoes += `<button class="btn-item" onclick="window.handleConsultar('${d.id}')">${d.id}</button>`;
+                const n = parseInt(d.id);
                 if(n > maior) maior = n;
             });
+            listaDiv.innerHTML = botoes || "<small>Nenhuma ninhada cadastrada</small>";
             document.getElementById('idN').value = String(maior + 1).padStart(3, '0');
+        };
+
+        window.handleReiniciar = async (id) => {
+            if(!confirm("Deseja ZERAR esta ninhada? Todos os dados serão apagados para novo uso.")) return;
+            const u = auth.currentUser;
+            await deleteDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
+            alert("Balde Reiniciado!");
+            document.getElementById('res').style.display = "none";
+            window.atualizarListaNinhadas();
         };
 
         window.checarAlertas = async () => {
@@ -43,32 +61,25 @@
             const alertaBox = document.getElementById('alerta-tpa');
             const snap = await getDocs(collection(db, "usuarios", u.uid, "ninhadas"));
             let pendentes = [];
-            
             snap.forEach(doc => {
                 const d = doc.data();
-                const ultDataStr = d.historico[d.historico.length - 1].data;
-                const partes = ultDataStr.split('/');
-                const ultimaAtualizacao = new Date(partes[2], partes[1] - 1, partes[0]);
-                const diffDias = Math.floor((new Date() - ultimaAtualizacao) / (1000 * 60 * 60 * 24));
-                
-                if(diffDias >= 3) pendentes.push(d.id);
+                if(d.historico && d.historico.length > 0) {
+                    const ultDataStr = d.historico[d.historico.length - 1].data;
+                    const partes = ultDataStr.split('/');
+                    const ultimaAtualizacao = new Date(partes[2], partes[1] - 1, partes[0]);
+                    const diffDias = Math.floor((new Date() - ultimaAtualizacao) / (1000 * 60 * 60 * 24));
+                    if(diffDias >= 3) pendentes.push(d.id);
+                }
             });
-
-            if(pendentes.length > 0) {
-                alertaBox.style.display = "block";
-                alertaBox.innerHTML = `⚠️ TPA/MANEJO ATRASADO: ${pendentes.join(', ')}`;
-            } else {
-                alertaBox.style.display = "none";
-            }
+            alertaBox.style.display = pendentes.length > 0 ? "block" : "none";
+            alertaBox.innerHTML = `⚠️ TPA ATRASADA: ${pendentes.join(', ')}`;
         };
 
         window.limparSessao = () => {
             const inputs = document.querySelectorAll('input');
             inputs.forEach(i => { if(i.id !== 'idN') i.value = ""; });
-            const res = document.getElementById('res');
-            res.innerHTML = "";
-            res.style.display = "none";
-            window.proximoID();
+            document.getElementById('res').style.display = "none";
+            window.atualizarListaNinhadas();
         };
 
         window.handleLogin = () => {
@@ -77,41 +88,28 @@
             signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
         };
 
-        window.handleCadastro = () => {
-            const e = document.getElementById('email').value;
-            const s = document.getElementById('senha').value;
-            createUserWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.message));
-        };
-
-        window.handleSair = () => { signOut(auth).then(() => { window.limparSessao(); }); };
-
         window.handleSalvar = async () => {
             const u = auth.currentUser;
             const id = document.getElementById('idN').value;
             const q = document.getElementById('qtd').value;
-            if(!u || !id || !q) return alert("Preencha o campo Qtd!");
-
+            if(!u || !id || !q) return alert("Preencha a Qtd!");
             const ref = doc(db, "usuarios", u.uid, "ninhadas", id);
             const snap = await getDoc(ref);
             let hist = snap.exists() ? snap.data().historico : [];
             hist.push({ data: new Date().toLocaleDateString('pt-BR'), qtd: parseInt(q) });
-
             await setDoc(ref, {
                 id, pai: document.getElementById('pai').value, mae: document.getElementById('mae').value,
                 dataE: document.getElementById('dataE').value, historico: hist
             });
-            alert("REGISTRO SALVO!");
+            alert("SALVO!");
             window.limparSessao();
             window.checarAlertas();
         };
 
-        window.handleConsultar = async () => {
+        window.handleConsultar = async (id) => {
             const u = auth.currentUser;
-            const id = document.getElementById('idBusca').value;
-            if(!id) return alert("Digite o número");
             const snap = await getDoc(doc(db, "usuarios", u.uid, "ninhadas", id));
             if (snap.exists()) renderizarConsulta(snap.data());
-            else alert("Não encontrado");
         };
 
         function renderizarConsulta(d) {
@@ -120,22 +118,21 @@
             const atual = d.historico[d.historico.length - 1].qtd;
             const sobrevivencia = ((atual / inicial) * 100).toFixed(1);
             const dias = Math.floor((new Date() - new Date(d.dataE + "T12:00:00")) / 86400000) + 1;
-
             res.style.display = "block";
             res.innerHTML = `
                 <div class="card-resultado">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
                         <strong style="font-size:1.1rem">NINHADA ${d.id}</strong>
                         <span class="badge-dias">${dias} DIAS</span>
                     </div>
-                    <p style="margin:5px 0"><b>Pais:</b> ${d.pai} x ${d.mae}</p>
-                    <p style="margin:5px 0"><b>Sobrevivência:</b> <span style="color:#64ffda">${sobrevivencia}%</span></p>
+                    <p style="margin:8px 0"><b>Pais:</b> ${d.pai} x ${d.mae} | <b>Sobrev.:</b> <span style="color:#64ffda">${sobrevivencia}%</span></p>
                     <table>
                         <tr><th>Data</th><th>Qtd</th><th>%</th></tr>
                         ${d.historico.map(h => `<tr><td>${h.data}</td><td>${h.qtd}</td><td>${((h.qtd/inicial)*100).toFixed(1)}%</td></tr>`).join('')}
                     </table>
-                    <div style="display:flex; gap:10px; margin-top:15px">
+                    <div style="display:flex; gap:8px; margin-top:15px">
                         <button class="btn-at" onclick="prepararUpdate('${d.id}','${d.pai}','${d.mae}','${d.dataE}')">ATUALIZAR</button>
+                        <button class="btn-reiniciar" onclick="window.handleReiniciar('${d.id}')">REINICIAR BALDE</button>
                     </div>
                 </div>`;
         }
@@ -151,51 +148,51 @@
         onAuthStateChanged(auth, (user) => {
             document.getElementById('tela-login').style.display = user ? 'none' : 'block';
             document.getElementById('tela-app').style.display = user ? 'block' : 'none';
-            if(user) { window.proximoID(); window.checarAlertas(); }
+            if(user) { window.atualizarListaNinhadas(); window.checarAlertas(); }
         });
     </script>
 
     <style>
-        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --text: #e6f1ff; }
+        :root { --bg: #0a192f; --card: #112240; --accent: #64ffda; --blue: #00a8ff; --orange: #f39c12; --red: #ff4d4d; --text: #e6f1ff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 450px; flex-grow: 1; display: flex; flex-direction: column; }
+        .container { width: 100%; max-width: 450px; display: flex; flex-direction: column; }
         label { display: block; color: var(--blue); font-weight: bold; font-size: 13px; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 12px; background: #0c1d36; border: 1px solid #233554; border-radius: 6px; color: white; margin-bottom: 12px; box-sizing: border-box; font-size: 16px; }
         input[readonly] { background: #071224; color: #8892b0; border-color: #112240; }
-        .row { display: flex; gap: 10px; }
+        .row { display: flex; gap: 8px; }
         .row > div { flex: 1; }
         button { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-limpar { background: #233554; color: white; flex: 1; padding: 15px; }
         .btn-salvar { background: var(--accent); color: #0a192f; flex: 1.2; padding: 15px; }
-        .btn-consultar { background: var(--blue); color: white; width: 100%; padding: 15px; margin-top: 10px; }
-        .divider { border-top: 1px dashed #233554; margin: 25px 0; }
-        .card-resultado { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; margin-top: 15px; }
-        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        #alerta-tpa { background: rgba(243, 156, 18, 0.15); border: 1px solid var(--orange); color: var(--orange); padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: bold; text-align: center; display: none; }
-        table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
+        .btn-item { background: #112240; color: var(--accent); border: 1px solid #233554; padding: 10px; min-width: 60px; font-size: 14px; }
+        .btn-reiniciar { background: var(--red); color: white; flex: 1; padding: 12px; font-size: 10px; }
+        .btn-at { background: var(--orange); color: white; flex: 1.5; padding: 12px; }
+        #lista-ninhadas { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .divider { border-top: 1px dashed #233554; margin: 20px 0; }
+        .card-resultado { border: 1px solid var(--accent); border-radius: 10px; padding: 15px; margin-top: 15px; background: var(--card); }
+        .badge-dias { background: var(--accent); color: #0a192f; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        #alerta-tpa { background: rgba(243, 156, 18, 0.15); border: 1px solid var(--orange); color: var(--orange); padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; display: none; text-align: center; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { border-bottom: 1px solid #233554; color: var(--accent); padding: 8px; }
         td { text-align: center; padding: 8px; border-bottom: 1px solid #1d2d44; }
-        .btn-at { background: var(--orange); color: white; flex: 1; padding: 12px; }
         .suporte { margin-top: 20px; text-align: center; font-size: 11px; color: #8892b0; border-top: 1px solid #233554; padding-top: 15px; }
-        .footer-creditos { margin-top: auto; padding: 30px 0 10px; text-align: center; font-size: 10px; color: #8892b0; opacity: 0.7; }
+        .footer-creditos { margin-top: 30px; padding-bottom: 10px; text-align: center; font-size: 10px; color: #8892b0; opacity: 0.7; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div id="tela-login">
         <h2 style="text-align:center; color:var(--accent)">MANEJO BETTAS</h2>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-salvar" style="width:100%" onclick="handleLogin()">ENTRAR</button>
-        <button class="btn-limpar" style="width:100%; margin-top:10px" onclick="handleCadastro()">CRIAR CONTA</button>
         <div class="suporte">SUPORTE WHATSAPP:<br><a href="https://wa.me/5583998027542" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold;">83 99802-7542</a></div>
     </div>
 
     <div id="tela-app" style="display:none">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-            <small style="font-size:10px; color:var(--accent)">SISTEMA DE MANEJO</small>
-            <button onclick="handleSair()" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
+            <small style="color:var(--accent)">SISTEMA DE MANEJO</small>
+            <button onclick="signOut(auth)" style="background:none; color:red; font-size:11px; border:1px solid red; padding:4px 8px">SAIR</button>
         </div>
         
         <label>Nº da Ninhada (Automático)</label>
@@ -209,20 +206,19 @@
             <div><label>Eclosão</label><input type="date" id="dataE"></div>
             <div><label>Qtd Alevinos</label><input type="number" id="qtd"></div>
         </div>
-        <div class="row" style="margin-top:10px">
+        <div class="row">
             <button class="btn-limpar" onclick="window.limparSessao()">LIMPAR</button>
-            <button class="btn-salvar" onclick="handleSalvar()">SALVAR REGISTRO</button>
+            <button class="btn-salvar" onclick="handleSalvar()">SALVAR</button>
         </div>
 
         <div class="divider"></div>
-
         <div id="alerta-tpa"></div>
 
-        <label>Consultar Ninhada</label>
-        <input type="text" id="idBusca" placeholder="Digite o número">
-        <button class="btn-consultar" onclick="handleConsultar()">CONSULTAR</button>
-        <div id="res"></div>
+        <label>NINHADAS CADASTRADAS (Clique para ver)</label>
+        <div id="lista-ninhadas"></div>
         
+        <div id="res"></div>
+
         <div class="footer-creditos">
             Desenvolvido por Juba Bettas<br>
             Todos os direitos reservados © 2026
